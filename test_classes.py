@@ -43,16 +43,22 @@ class AgentTests(unittest.TestCase):
             self.assertTrue(a.get_value(p) == v)
 
     def test_n_split(self):
-        for n in range(1,10):
+        for n in range(1,20):
             #print(n)
             cake = Cake()
             a = Agent()
             piece = self.get_random_piece(cake, randint(1,50))
-            total_value = a.get_value(piece)
+            total_value = a.get_value(piece, count=False)
             pieces = a.cut_into_n_pieces_of_equal_value(n, piece)
             for p in pieces:
-                self.assertTrue(a.get_value(p) == Fraction(total_value, n))
+                self.assertTrue(a.get_value(p, count=False) == Fraction(total_value, n))
                 self.assertTrue(pieces.count(p) == 1)
+            #Testing the counts
+            if n>1:
+                self.assertTrue(a.value_count == 1)
+            else:
+                self.assertTrue(a.value_count == 0)
+            self.assertTrue(a.trim_count == n-1)
 
     def get_random_piece(self, cake, interval_count):
         nums =  sorted([Fraction(random()) for i in range(interval_count*2)])

@@ -45,16 +45,18 @@ class Agent:
         '''
         Given a slice and a value, the agent must be able to determine where to trim the slice so that it is worth the value. Returns the trim and does not add it to the piece
         '''
-        def get_trim_of_value(piece, desired_value, actually_divide=False):
+        def get_trim_of_value(piece, desired_value, count=True):
             assert type(desired_value) == Fraction
 
+            if count: self.trim_count += 1
+
             if len(piece.trims) > 0:
-                return get_trim_of_value(piece.get_after_rightmost_trim(), desired_value, actually_divide = actually_divide)
+                return get_trim_of_value(piece.get_after_rightmost_trim(), desired_value, count=False)
 
             acc_value = Fraction(0)
             trim_at = Fraction(0)
             #target_value is the amount to trim OFF of the piece after the rightmost trim
-            target_value = self.get_value(piece) - desired_value
+            target_value = self.get_value(piece, count=False) - desired_value
             if target_value <= 0:
                 return None
             for interval in piece.intervals:
@@ -85,13 +87,8 @@ class Agent:
                     trim_at = interval.right
                     #print("Placing trim at",trim_at)
                     break
-            if not actually_divide:
-                return Trim(self, trim_at)
-            else:
-                #TODO FINISH!!!
-                assert False
-                p_left  = Piece(piece.cake, [])
-                p_right = Piece(piece.cake, [])
+            
+            return Trim(self, trim_at)
 
         return value_up_to, get_trim_of_value
 
@@ -101,26 +98,32 @@ class Agent:
     def __init__(self, division_count = 10, preference_function=myrandom):
         self.value_up_to, self.get_trim_of_value = self.generate_random_preferences(division_count, preference_function)
         self.name = 'Agent '+str(random.randint(10000,99999))
+        self.trim_count = 0
+        self.value_count = 0
 
     def __repr__(self):
         return self.name
 
     '''
     Given a list of slices, the agent must be able to identify their favorite. There must be no ties
+    TODO
     '''
-    def choose_piece(self, pieces):
+    def choose_piece(self, pieces, count=True):
         max_value = 0
         for p in pieces:
-            max_value = max(max_value, self.get_value(p))
+            max_value = max(max_value, self.get_value(p, count=count))
         for p in pieces:
-            if self.get_value(p) == max_value:
+            if self.get_value(p, count=False) == max_value:
                 return p
         raise Error('Could not find a best piece')
 
     '''
     Given a slice, the agent must be able to assign consistent, proportional value to the slice 
     '''
-    def get_value(self, piece):
+    def get_value(self, piece, count=True):
+        if count: 
+            self.value_count +=1
+            print('self.value_count:',self.value_count)
         sum_value = 0
         cut_piece = piece.get_after_rightmost_trim()
         for interval in cut_piece.intervals:
@@ -135,11 +138,18 @@ class Agent:
             return [piece]
         total_value = self.get_value(piece)
         target_value = total_value / n
-        assert type(target_value) == Fraction
-        t = self.get_trim_of_value(piece, target_value)
-        piece.trims.append(t)
-        left_piece, right_piece = piece.split_at_rightmost_trim()
-        return self.cut_into_n_pieces_of_equal_value(n-1, left_piece) + [right_piece]
+        assert type(target_value) == Fraction 
+        left_piece = piece
+        pieces = []
+        for i in range(n-1):
+            t = self.get_trim_of_value(left_piece, target_value)
+            left_piece.trims.append(t)
+            left_piece, right_piece = left_piece.split_at_rightmost_trim()
+            pieces.append(right_piece)
+        #Pieces were added in the wrong order, so reverse!
+        pieces.append(left_piece)
+        pieces.reverse()
+        return pieces
 
 
     '''

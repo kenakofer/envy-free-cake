@@ -10,8 +10,9 @@ a[i] -> agents[i].preferred_value
 
 
 '''
-def subcore(pieces, agents):
-
+def subcore(pieces, agents, call_signature=""):
+    print()
+    print(call_signature)
     print("Calling subcore with",len(pieces),"pieces and",len(agents),'agents')
 
     #Ensure that no piece passed in was trimmed by an agent passed in
@@ -27,6 +28,8 @@ def subcore(pieces, agents):
     for m in range(1,len(agents)+1):
         print("m=",m)
 
+
+
         # If the next agent's preferred piece is unallocated
         preferred_piece = agents[m-1].choose_piece(pieces)
         if preferred_piece.allocated == None:
@@ -37,13 +40,16 @@ def subcore(pieces, agents):
             uncontested_pieces = list(filter(lambda p: p.allocated == None, pieces))
             assert len(uncontested_pieces) >= 1
 
+            #This assertion "never makes sense" --Christian Bechler, 2017-06-06 12:20 EST
+            #assert all([p.rightmost_cutter() not in agents[:m] for p in contested_pieces])
+
             for agent in agents[:m]:
                 uncontested_max_value = max(map(agent.get_value, uncontested_pieces))
-                print("This agent's uncontested max value is",float(uncontested_max_value))
+                print(agent, "uncontested max value is",float(uncontested_max_value))
                 for piece in contested_pieces:
-                    print("Whereas this piece is worth",float(agent.get_value(piece)))
+                    print("Whereas",piece,"is worth",float(agent.get_value(piece)))
                     #Because new valuations are made from the rightmost trim, don't immediately add these new trims to the piece.
-                    possible_trim =  agent.get_trim_of_value(piece, uncontested_max_value) 
+                    possible_trim =  agent.get_trim_of_value(piece, uncontested_max_value)
                     if possible_trim != None:
                         piece.pending_trims.append(possible_trim)
 
@@ -63,7 +69,15 @@ def subcore(pieces, agents):
             winners = []
             for piece in contested_pieces:
                 winner = piece.rightmost_cutter()
-                if not winner in winners:
+
+                '''
+                There might be no trims on the piece, in which case it is None
+                The rightmost trim may be from a higher call of subcore
+                We only place each winner in the list once
+                '''
+                if winner != None and \
+                        winner in agents[:m] and \
+                        winner not in winners:
                     winners.append(winner)
 
             while len(winners) < m-1:
@@ -79,7 +93,8 @@ def subcore(pieces, agents):
                     #Is this safe? VVVV
                     piece.forget_trims_by_agents(winners)
 
-                subcore(contested_pieces, winners)
+                subcore(contested_pieces, winners, call_signature = call_signature+' m'+str(m)+'w')
+
                 unallocated_contested_piece = list(filter(lambda p: p.allocated == None, contested_pieces)) [0]
                 new_winner = unallocated_contested_piece.rightmost_cutter()
                 assert new_winner != None
@@ -94,14 +109,16 @@ def subcore(pieces, agents):
                 ##????
                 piece.allocated = None
 
-            #TODO is this check useful?
-            assert envy_free(contested_pieces)
-
-            subcore(contested_pieces, winners)
+            subcore(contested_pieces, winners, call_signature = call_signature+' m'+str(m))
             
-
             losers = list(set(agents[:m]) - set(winners))
-            assert len(losers) == 1
+            ##TODO DEBUG REMOVE!!!!
+            if len(losers) != 1:
+                print("Winners are:",winners)
+                print("Losers  are:",losers)
+                print("Agents[:m] :",agents[:m])
+                assert False
+
             loser = losers[0]
             
             preferred_uncontested_piece = loser.choose_piece(uncontested_pieces)
@@ -120,4 +137,6 @@ def subcore(pieces, agents):
         assert agent_check == set(agents[:m])
     #END FOR
     assert envy_free(pieces)
+    print("Returning from subcore with",len(pieces),"pieces and",len(agents),'agents')
+    print()
     return pieces

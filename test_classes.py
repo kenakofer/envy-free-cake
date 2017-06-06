@@ -27,7 +27,7 @@ class AgentTests(unittest.TestCase):
         cake = Cake()
 
         test_pieces = []
-        test_count=50
+        test_count=20
         i_num = 10
         for j in range(test_count):
             test_pieces.append(self.get_random_piece(cake, i_num))
@@ -43,7 +43,7 @@ class AgentTests(unittest.TestCase):
             self.assertTrue(a.get_value(p) == v)
 
     def test_n_split(self):
-        for n in range(1,20):
+        for n in range(1,10):
             #print(n)
             cake = Cake()
             a = Agent()

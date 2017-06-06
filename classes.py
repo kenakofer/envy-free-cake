@@ -39,16 +39,16 @@ class Agent:
         '''
         def get_trim_of_value(piece, desired_value, actually_divide=False):
             assert type(desired_value) == Fraction
+
+            if len(piece.trims) > 0:
+                return get_trim_of_value(piece.get_after_rightmost_trim(), desired_value, actually_divide = actually_divide)
+
             acc_value = Fraction(0)
             trim_at = Fraction(0)
-            #target_value is the amount to trim OFF of the piece from the left side
+            #target_value is the amount to trim OFF of the piece after the rightmost trim
             target_value = self.get_value(piece) - desired_value
             if target_value <= 0:
                 return None
-
-            if len(piece.trims) > 0:
-                return get_trim_of_value(piece.get_after_rightmost_trim(), target_value, actually_divide = actually_divide)
-
             for interval in piece.intervals:
                 value_of_interval = value_up_to(interval.right) - value_up_to(interval.left)
                 #print("This interval is worth",value_of_interval)
@@ -92,6 +92,10 @@ class Agent:
     '''
     def __init__(self, div_count = 10):
         self.value_up_to, self.get_trim_of_value = self.generate_random_preferences(div_count)
+        self.name = 'Agent '+str(random.randint(10000,99999))
+
+    def __repr__(self):
+        return self.name
 
     '''
     Given a list of slices, the agent must be able to identify their favorite. There must be no ties
@@ -156,6 +160,10 @@ class Piece:
         self.trims = []
         self.pending_trims = []
         self.tags = [] #Use tags to mark pieces with additional information. For example, if someone claims a piece.
+        self.name = 'Piece '+str(random.randint(10000,99999))
+
+    def __repr__(self):
+        return self.name
 
     def rightmost_cutter(self):
         trim = self.get_rightmost_trim()

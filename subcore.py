@@ -62,7 +62,8 @@ def subcore(pieces, agents, call_signature=""):
                 piece.pending_trims = []
 
 
-
+            #Kenan asks why benchmarks are even necessary
+            #They don't modify the flow of code at all, but they're used in the proof
             for agent in agents:
                 agent.benchmark = max(map(agent.get_value, uncontested_pieces))
                 
@@ -137,6 +138,9 @@ def subcore(pieces, agents, call_signature=""):
         assert agent_check == set(agents[:m])
     #END FOR
     assert envy_free(pieces)
+    #This next assertion about benchmarks should be implied by envy_free above, but this is useful to remember for the proof:
+    for a in agents:
+        assert a.benchmark <= a.get_value(a.choose_piece(pieces))
     print("Returning from subcore with",len(pieces),"pieces and",len(agents),'agents')
     print()
     return pieces

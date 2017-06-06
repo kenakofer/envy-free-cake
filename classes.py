@@ -123,7 +123,6 @@ class Agent:
     def get_value(self, piece, count=True):
         if count: 
             self.value_count +=1
-            print('self.value_count:',self.value_count)
         sum_value = 0
         cut_piece = piece.get_after_rightmost_trim()
         for interval in cut_piece.intervals:

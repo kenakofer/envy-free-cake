@@ -4,11 +4,19 @@ from fractions import Fraction
 
 class Agent:
 
-    #TODO some hardcore testing!!!!!
-    #Also maybe some hardcore documentation.
-
-    def generate_random_preferences(self, division_count):
-        division_values = { Fraction(i,division_count): Fraction(random.random()) for i in range(1,division_count+1)}
+    def myrandom(x):
+        return random.random()
+    '''
+    Creates preference functions for valuing and trimming cake, which can appoximate any function of one argument 0 <= x <= 1.
+    division_count gives the number of homogeneous segments to divide the cake into. A larger number better approximates the
+    function. The default function to use is a wrapper of random.random() that takes x
+    '''
+    def generate_random_preferences(self, division_count, preference_function):
+        division_values = {}
+        #Generated evenly spaced values outputted from the function (random by default)
+        for i in range(1,division_count+1):
+            x = Fraction(i,division_count)
+            division_values[x] = Fraction(preference_function(x))
         s = sum([ division_values[k] for k in division_values])
         factor = division_count / s
         #Adjusted Division Values
@@ -90,8 +98,8 @@ class Agent:
     '''
     When created, all an agent has is a function for valuing different slices of cake
     '''
-    def __init__(self, div_count = 10):
-        self.value_up_to, self.get_trim_of_value = self.generate_random_preferences(div_count)
+    def __init__(self, division_count = 10, preference_function=myrandom):
+        self.value_up_to, self.get_trim_of_value = self.generate_random_preferences(division_count, preference_function)
         self.name = 'Agent '+str(random.randint(10000,99999))
 
     def __repr__(self):

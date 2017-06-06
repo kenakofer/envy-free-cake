@@ -31,6 +31,7 @@ def subcore(pieces, agents, call_signature=""):
 
 
         # If the next agent's preferred piece is unallocated
+        # TODO change so that agents will, in case of a tie, choose the first of the unallocated tied pieces if one exists
         preferred_piece = agents[m-1].choose_piece(pieces)
         if preferred_piece.allocated == None:
             preferred_piece.allocated = agents[m-1]

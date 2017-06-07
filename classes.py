@@ -124,11 +124,15 @@ class Agent:
     '''
     Given a slice, the agent must be able to assign consistent, proportional value to the slice 
     '''
-    def get_value(self, piece, count=True):
+    def get_value(self, piece, count=True, whole_piece=False):
         if count: 
             self.value_count +=1
+        if whole_piece:
+            cut_piece = piece
+        else:
+            cut_piece = piece.get_after_rightmost_trim()
+
         sum_value = 0
-        cut_piece = piece.get_after_rightmost_trim()
         for interval in cut_piece.intervals:
             sum_value += self.value_up_to(interval.right) - self.value_up_to(interval.left)
         return sum_value

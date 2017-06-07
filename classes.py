@@ -1,6 +1,8 @@
 import random
 from copy import copy
 from fractions import Fraction
+from debug import *
+
 
 class Agent:
 
@@ -21,6 +23,8 @@ class Agent:
         factor = division_count / s
         #Adjusted Division Values
         adv = {k: division_values[k]*factor for k in division_values}
+        #Save for later analysis
+        self.adv = adv
         keys = list(adv.keys())
         keys.sort()
 
@@ -61,15 +65,15 @@ class Agent:
                 return None
             for interval in piece.intervals:
                 value_of_interval = value_up_to(interval.right) - value_up_to(interval.left)
-                #print("This interval is worth",value_of_interval)
+                #debug_print("This interval is worth",value_of_interval)
 
                 if acc_value + value_of_interval < target_value:
-                    #print("Which will not be enough to reach target value of",target_value)
+                    #debug_print("Which will not be enough to reach target value of",target_value)
                     acc_value += value_of_interval
-                    #print("Now acc_value is",acc_value)
+                    #debug_print("Now acc_value is",acc_value)
                 elif acc_value + value_of_interval > target_value:
                     #Start using preference divisions
-                    #print('Which will take us above the target value of',target_value)
+                    #debug_print('Which will take us above the target value of',target_value)
                     if trim_at == 0:
                         trim_at = interval.left
 
@@ -85,7 +89,7 @@ class Agent:
                 #elif acc_value == target_value:
                 else:
                     trim_at = interval.right
-                    #print("Placing trim at",trim_at)
+                    #debug_print("Placing trim at",trim_at)
                     break
             
             return Trim(self, trim_at)
@@ -263,12 +267,12 @@ class Trim:
         self.owner = owner
 
 def envy_free(pieces):
-    print("Envy free check!")
+    debug_print("Envy free check!")
     for p in pieces:
         if p.allocated != None:
             agent = p.allocated
-            print(agent,"is allocated this piece:",p,"which has value",float(agent.get_value(p)))
-            print("Said agent would prefer a piece of value:",float(agent.get_value(agent.choose_piece(pieces))))
+            debug_print(agent,"is allocated this piece:",p,"which has value",float(agent.get_value(p)))
+            debug_print("Said agent would prefer a piece of value:",float(agent.get_value(agent.choose_piece(pieces))))
             if agent.get_value(agent.choose_piece(pieces)) > agent.get_value(p):
                 return False
     return True

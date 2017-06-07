@@ -60,12 +60,12 @@ class AgentTests(unittest.TestCase):
                 self.assertTrue(a.value_count == 0)
             self.assertTrue(a.trim_count == n-1)
 
-    def get_random_piece(self, cake, interval_count):
-        nums =  sorted([Fraction(random()) for i in range(interval_count*2)])
-        intervals = []
-        for i in range(0,interval_count*2,2):
-            intervals.append(Interval(nums[i], nums[i+1]))
-        return Piece(cake, intervals)
+def get_random_piece(cake, interval_count):
+    nums =  sorted([Fraction(random()) for i in range(interval_count*2)])
+    intervals = []
+    for i in range(0,interval_count*2,2):
+        intervals.append(Interval(nums[i], nums[i+1]))
+    return Piece(cake, intervals)
             
 
 

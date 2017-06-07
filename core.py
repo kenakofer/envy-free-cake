@@ -1,5 +1,6 @@
 from classes import *
 from subcore import *
+from debug import *
 
 def core(agent_to_cut, agents, piece):
     assert agent_to_cut in agents

@@ -1,4 +1,6 @@
 from classes import *
+from debug import *
+
 
 '''
 Returns a neat, partial, envy-free alocation of pieces of cake among the agents given
@@ -11,9 +13,9 @@ a[i] -> agents[i].preferred_value
 
 '''
 def subcore(pieces, agents, call_signature=""):
-    print()
-    print(call_signature)
-    print("Calling subcore with",len(pieces),"pieces and",len(agents),'agents')
+    debug_print()
+    debug_print(call_signature)
+    debug_print("Calling subcore with",len(pieces),"pieces and",len(agents),'agents')
 
     #Ensure that no piece passed in was trimmed by an agent passed in
     for p in pieces:
@@ -26,7 +28,7 @@ def subcore(pieces, agents, call_signature=""):
 
 
     for m in range(1,len(agents)+1):
-        print("m=",m)
+        debug_print("m=",m)
 
 
 
@@ -46,9 +48,9 @@ def subcore(pieces, agents, call_signature=""):
 
             for agent in agents[:m]:
                 uncontested_max_value = max(map(agent.get_value, uncontested_pieces))
-                print(agent, "uncontested max value is",float(uncontested_max_value))
+                debug_print(agent, "uncontested max value is",float(uncontested_max_value))
                 for piece in contested_pieces:
-                    print("Whereas",piece,"is worth",float(agent.get_value(piece)))
+                    debug_print("Whereas",piece,"is worth",float(agent.get_value(piece)))
                     #Because new valuations are made from the rightmost trim, don't immediately add these new trims to the piece.
                     possible_trim =  agent.get_trim_of_value(piece, uncontested_max_value)
                     if possible_trim != None:
@@ -83,7 +85,7 @@ def subcore(pieces, agents, call_signature=""):
                     winners.append(winner)
 
             while len(winners) < m-1:
-                print("BEGINNING WHILE LOOP")
+                debug_print("BEGINNING WHILE LOOP")
 
                 # Forget allocations
                 # TODO should this go here?
@@ -116,9 +118,9 @@ def subcore(pieces, agents, call_signature=""):
             losers = list(set(agents[:m]) - set(winners))
             ##TODO DEBUG REMOVE!!!!
             if len(losers) != 1:
-                print("Winners are:",winners)
-                print("Losers  are:",losers)
-                print("Agents[:m] :",agents[:m])
+                debug_print("Winners are:",winners)
+                debug_print("Losers  are:",losers)
+                debug_print("Agents[:m] :",agents[:m])
                 assert False
 
             loser = losers[0]
@@ -142,6 +144,6 @@ def subcore(pieces, agents, call_signature=""):
     #This next assertion about benchmarks should be implied by envy_free above, but this is useful to remember for the proof:
     for a in agents:
         assert a.benchmark <= a.get_value(a.choose_piece(pieces))
-    print("Returning from subcore with",len(pieces),"pieces and",len(agents),'agents')
-    print()
+    debug_print("Returning from subcore with",len(pieces),"pieces and",len(agents),'agents')
+    debug_print()
     return pieces

@@ -30,7 +30,7 @@ class AgentTests(unittest.TestCase):
         test_count=20
         i_num = 10
         for j in range(test_count):
-            test_pieces.append(self.get_random_piece(cake, i_num))
+            test_pieces.append(get_random_piece(cake, i_num))
 
         for p in test_pieces:
             #print("Piece has intervals",p.intervals)
@@ -47,7 +47,7 @@ class AgentTests(unittest.TestCase):
             #print(n)
             cake = Cake()
             a = Agent()
-            piece = self.get_random_piece(cake, randint(1,50))
+            piece = get_random_piece(cake, randint(1,50))
             total_value = a.get_value(piece, count=False)
             pieces = a.cut_into_n_pieces_of_equal_value(n, piece)
             for p in pieces:

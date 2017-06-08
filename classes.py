@@ -152,7 +152,9 @@ class Agent:
     def cut_into_n_pieces_of_equal_value(self, n, piece):
         if n <= 1:
             return [piece]
+        precount = self.value_count
         total_value = self.get_value(piece)
+        assert self.value_count == precount +1
         target_value = total_value / n
         assert type(target_value) == Fraction 
         left_piece = piece
@@ -165,6 +167,7 @@ class Agent:
         #Pieces were added in the wrong order, so reverse!
         pieces.append(left_piece)
         pieces.reverse()
+        assert self.value_count == precount +1
         return pieces
 
 
@@ -284,8 +287,8 @@ def envy_free(pieces):
     for p in pieces:
         if p.allocated != None:
             agent = p.allocated
-            debug_print(agent,"is allocated this piece:",p,"which has value",float(agent.get_value(p)))
-            debug_print("Said agent would prefer a piece of value:",float(agent.get_value(agent.choose_piece(pieces))))
-            if agent.get_value(agent.choose_piece(pieces)) > agent.get_value(p):
+            debug_print(agent,"is allocated this piece:",p,"which has value",float(agent.get_value(p, count=False)))
+            debug_print("Said agent would prefer a piece of value:",float(agent.get_value(agent.choose_piece(pieces, count=False), count=False)))
+            if agent.get_value(agent.choose_piece(pieces, count=False), count=False) > agent.get_value(p, count=False):
                 return False
     return True

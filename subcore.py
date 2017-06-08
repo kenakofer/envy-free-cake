@@ -23,8 +23,9 @@ def subcore(pieces, agents, call_signature=""):
             assert t.owner not in agents
 
     # Set all agent favorite piece value in variable a
+    # TODO cache agent values
     for agent in agents:
-        agent.preferred_value = agent.get_value( agent.choose_piece(pieces) )
+        agent.preferred_value = agent.get_value( agent.choose_piece(pieces), count=False )
 
 
     for m in range(1,len(agents)+1):
@@ -34,7 +35,7 @@ def subcore(pieces, agents, call_signature=""):
 
         # If the next agent's preferred piece is unallocated
         # TODO change so that agents will, in case of a tie, choose the first of the unallocated tied pieces if one exists
-        preferred_piece = agents[m-1].choose_piece(pieces)
+        preferred_piece = agents[m-1].choose_piece(pieces, count=False)
         if preferred_piece.allocated == None:
             preferred_piece.allocated = agents[m-1]
         else:
@@ -47,10 +48,11 @@ def subcore(pieces, agents, call_signature=""):
             #assert all([p.rightmost_cutter() not in agents[:m] for p in contested_pieces])
 
             for agent in agents[:m]:
-                uncontested_max_value = max(map(agent.get_value, uncontested_pieces))
+                #TODO replace these get_value calls with cached value checking
+                uncontested_max_value = max( [agent.get_value(p, count=False) for p in uncontested_pieces] )
                 debug_print(agent, "uncontested max value is",float(uncontested_max_value))
                 for piece in contested_pieces:
-                    debug_print("Whereas",piece,"is worth",float(agent.get_value(piece)))
+                    debug_print("Whereas",piece,"is worth",float(agent.get_value(piece, count=False)))
                     #Because new valuations are made from the rightmost trim, don't immediately add these new trims to the piece.
                     possible_trim =  agent.get_trim_of_value(piece, uncontested_max_value)
                     if possible_trim != None:
@@ -67,8 +69,9 @@ def subcore(pieces, agents, call_signature=""):
 
             #Kenan asks why benchmarks are even necessary
             #They don't modify the flow of code at all, but they're used in the proof
+            #TODO replace this with cached value checks
             for agent in agents:
-                agent.benchmark = max(map(agent.get_value, uncontested_pieces))
+                agent.benchmark = max( [agent.get_value(p, count=False) for p in uncontested_pieces] )
                 
             winners = []
             for piece in contested_pieces:
@@ -125,7 +128,7 @@ def subcore(pieces, agents, call_signature=""):
 
             loser = losers[0]
             
-            preferred_uncontested_piece = loser.choose_piece(uncontested_pieces)
+            preferred_uncontested_piece = loser.choose_piece(uncontested_pieces, count=False)
             preferred_uncontested_piece.allocated = loser
 
             # TODO Assert that loser prefers this piece to all contested pieces?
@@ -135,7 +138,7 @@ def subcore(pieces, agents, call_signature=""):
         agent_check = set([])
         for p in pieces:
             if p.allocated != None:
-                p.allocated.preferred_value = agent.get_value(p)
+                p.allocated.preferred_value = agent.get_value(p, count=False)
                 assert p.allocated not in agent_check
                 agent_check.add(p.allocated)
         assert agent_check == set(agents[:m])
@@ -143,7 +146,7 @@ def subcore(pieces, agents, call_signature=""):
     assert envy_free(pieces)
     #This next assertion about benchmarks should be implied by envy_free above, but this is useful to remember for the proof:
     for a in agents:
-        assert a.benchmark <= a.get_value(a.choose_piece(pieces))
+        assert a.benchmark <= a.get_value(a.choose_piece(pieces, count=False), count=False)
     debug_print("Returning from subcore with",len(pieces),"pieces and",len(agents),'agents')
     debug_print()
     return pieces

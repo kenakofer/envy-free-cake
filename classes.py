@@ -110,16 +110,25 @@ class Agent:
 
     '''
     Given a list of slices, the agent must be able to identify their favorite. There must be no ties
-    TODO
+    Also, if there is a tie between an allocated piece and an unallocated piece, choose an unallocated one
+    TODO don't reevaluate all these get_value calls
     '''
     def choose_piece(self, pieces, count=True):
         max_value = 0
+        best_piece = None
         for p in pieces:
             max_value = max(max_value, self.get_value(p, count=count))
         for p in pieces:
             if self.get_value(p, count=False) == max_value:
-                return p
-        raise Error('Could not find a best piece')
+                if p.allocated == None:
+                    #Immediately return an unallocated piece that we come across
+                    return p
+                elif best_piece==None:
+                    best_piece = p
+
+        assert best_piece != None
+        #We didn't find any unallocated pieces
+        return best_piece
 
     '''
     Given a slice, the agent must be able to assign consistent, proportional value to the slice 

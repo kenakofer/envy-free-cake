@@ -25,7 +25,7 @@ def subcore(pieces, agents, call_signature=""):
     # Set all agent favorite piece value in variable a
     # TODO cache agent values
     for agent in agents:
-        agent.preferred_value = agent.get_value( agent.choose_piece(pieces), count=False )
+        agent.preferred_value = agent.get_value( agent.choose_piece(pieces) )
 
 
     for m in range(1,len(agents)+1):
@@ -34,8 +34,8 @@ def subcore(pieces, agents, call_signature=""):
 
 
         # If the next agent's preferred piece is unallocated
-        # TODO change so that agents will, in case of a tie, choose the first of the unallocated tied pieces if one exists
-        preferred_piece = agents[m-1].choose_piece(pieces, count=False)
+        # IMPORTANT: This line breaks our previous upper bound for the operation of sub_core, becaus
+        preferred_piece = agents[m-1].choose_piece(pieces)
         if preferred_piece.allocated == None:
             preferred_piece.allocated = agents[m-1]
         else:
@@ -49,7 +49,7 @@ def subcore(pieces, agents, call_signature=""):
 
             for agent in agents[:m]:
                 #TODO replace these get_value calls with cached value checking
-                uncontested_max_value = max( [agent.get_value(p, count=False) for p in uncontested_pieces] )
+                uncontested_max_value = max( [agent.get_value(p) for p in uncontested_pieces] )
                 debug_print(agent, "uncontested max value is",float(uncontested_max_value))
                 for piece in contested_pieces:
                     debug_print("Whereas",piece,"is worth",float(agent.get_value(piece, count=False)))
@@ -71,7 +71,7 @@ def subcore(pieces, agents, call_signature=""):
             #They don't modify the flow of code at all, but they're used in the proof
             #TODO replace this with cached value checks
             for agent in agents:
-                agent.benchmark = max( [agent.get_value(p, count=False) for p in uncontested_pieces] )
+                agent.benchmark = max( [agent.get_value(p) for p in uncontested_pieces] )
                 
             winners = []
             for piece in contested_pieces:
@@ -128,7 +128,7 @@ def subcore(pieces, agents, call_signature=""):
 
             loser = losers[0]
             
-            preferred_uncontested_piece = loser.choose_piece(uncontested_pieces, count=False)
+            preferred_uncontested_piece = loser.choose_piece(uncontested_pieces)
             preferred_uncontested_piece.allocated = loser
 
             # TODO Assert that loser prefers this piece to all contested pieces?

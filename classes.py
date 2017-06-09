@@ -55,6 +55,7 @@ class Agent:
             if count: self.trim_count += 1
 
             if len(piece.trims) > 0:
+                #print('Calling trim on rightmost piece')
                 return get_trim_of_value(piece.get_after_rightmost_trim(), desired_value, count=False)
 
             acc_value = Fraction(0)
@@ -91,7 +92,12 @@ class Agent:
                     trim_at = interval.right
                     #debug_print("Placing trim at",trim_at)
                     break
-            
+
+            #Because this trim may not be added to the piece, hash the value of a copied piece
+            new_piece = copy(piece)
+            new_piece.trims = [Trim(self, trim_at)]
+            self.cached_values[hash(new_piece)] = desired_value
+
             return Trim(self, trim_at)
 
         return value_up_to, get_trim_of_value
@@ -104,6 +110,8 @@ class Agent:
         self.name = 'Agent '+str(random.randint(10000,99999))
         self.trim_count = 0
         self.value_count = 0
+        #This dictionary stores the cached values of pieces, with hash of piece as keys, and value of piece as value
+        self.cached_values = {}
 
     def __repr__(self):
         return self.name
@@ -133,17 +141,28 @@ class Agent:
     '''
     Given a slice, the agent must be able to assign consistent, proportional value to the slice 
     '''
-    def get_value(self, piece, count=True, whole_piece=False):
+    def get_value(self, piece, count=True, whole_piece=False, use_cache=True):
+        if use_cache and hash(piece) in self.cached_values and not whole_piece:
+            #print('Using cache for',piece,'with hash_info:',piece.hash_info())
+            #print('  which hashes to', hash(piece))
+            #print('  and returns cached value:', self.cached_values[hash(piece)])
+            return self.cached_values[hash(piece)]
+
         if count: 
             self.value_count +=1
         if whole_piece:
             cut_piece = piece
         else:
+            #print('Now lets get after rightmost_trim!!!')
             cut_piece = piece.get_after_rightmost_trim()
+            #print('Finished getting after rightmost')
 
         sum_value = 0
         for interval in cut_piece.intervals:
             sum_value += self.value_up_to(interval.right) - self.value_up_to(interval.left)
+
+        #Cache the computed value
+        self.cached_values[hash(piece)] = sum_value
         return sum_value
 
     '''
@@ -152,22 +171,28 @@ class Agent:
     def cut_into_n_pieces_of_equal_value(self, n, piece):
         if n <= 1:
             return [piece]
-        precount = self.value_count
         total_value = self.get_value(piece)
-        assert self.value_count == precount +1
         target_value = total_value / n
         assert type(target_value) == Fraction 
-        left_piece = piece
+        left_piece = copy(piece)
         pieces = []
+        history = []
         for i in range(n-1):
+            #TODO why is this necessary? Otherwise the left_pieces in this loop will sometimes hash to the same value!!????!??
+            history.append(left_piece)
             t = self.get_trim_of_value(left_piece, target_value)
+            assert t.x != 0
             left_piece.trims.append(t)
+            assert left_piece.get_rightmost_trim() == t
             left_piece, right_piece = left_piece.split_at_rightmost_trim()
+
             pieces.append(right_piece)
         #Pieces were added in the wrong order, so reverse!
         pieces.append(left_piece)
         pieces.reverse()
-        assert self.value_count == precount +1
+        #Cache all the piece values
+        for p in pieces:
+            self.cached_values[hash(p)] = target_value
         return pieces
 
 
@@ -201,6 +226,18 @@ class Piece:
 
     def __repr__(self):
         return self.name
+
+    def __hash__(self):
+        #print('Now we hash:',self.hash_info(),' with result',hash(self.hash_info()))
+        return hash(self.hash_info())
+
+    def hash_info(self):
+        t = self.get_rightmost_trim()
+        if t != None:
+            right = t.x
+        else:
+            right = self.intervals[0].left
+        return (tuple(self.intervals[:]), right)
 
     def rightmost_cutter(self):
         trim = self.get_rightmost_trim()
@@ -257,7 +294,7 @@ class Piece:
                     return Piece(self.cake, self.intervals[:i+1]), Piece(self.cake, self.intervals[i+1:])
                 else:
                     #It IS possible to trim a piece to 0 width
-                    return Piece(self.cake, self.intervals), Piece(self.cake, [Interval(trim.x, trim.x)])
+                    return Piece(self.cake, self.intervals[:]), Piece(self.cake, [Interval(trim.x, trim.x)])
 
     def forget_trims_by_agents(self, agents):
         keep_trims = list(filter(lambda t: t.owner not in agents, self.trims))
@@ -273,7 +310,7 @@ class Interval:
         assert type(self.right) == Fraction
 
     def __repr__(self):
-        return '['+str(self.left)+', '+str(self.right)+']'
+        return '['+str(float(self.left))[:5]+', '+str(float(self.right))[:5]+']'
 
 class Trim:
 
@@ -281,6 +318,9 @@ class Trim:
         self.x = location
         assert type(self.x) == Fraction
         self.owner = owner
+
+    def __repr__(self):
+        return 'Trim('+str(self.owner)+', '+str(float(self.x))+')'
 
 def envy_free(pieces):
     debug_print("Envy free check!")

@@ -47,8 +47,10 @@ class AgentTests(unittest.TestCase):
             print(n)
             cake = Cake()
             a = Agent()
+            #a = Agent(division_count=1, preference_function=lambda x: 1)
             assert len(a.cached_values) == 0
             piece = get_random_piece(cake, randint(1,50))
+            #piece = cake.pieces[0]
             total_value = a.get_value(piece)
             pieces = a.cut_into_n_pieces_of_equal_value(n, piece)
             for p in pieces:

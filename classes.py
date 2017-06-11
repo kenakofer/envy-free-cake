@@ -55,7 +55,6 @@ class Agent:
             if count: self.trim_count += 1
 
             if len(piece.trims) > 0:
-                #print('Calling trim on rightmost piece')
                 return get_trim_of_value(piece.get_after_rightmost_trim(), desired_value, count=False)
 
             acc_value = Fraction(0)
@@ -66,15 +65,11 @@ class Agent:
                 return None
             for interval in piece.intervals:
                 value_of_interval = value_up_to(interval.right) - value_up_to(interval.left)
-                #debug_print("This interval is worth",value_of_interval)
 
                 if acc_value + value_of_interval < target_value:
-                    #debug_print("Which will not be enough to reach target value of",target_value)
                     acc_value += value_of_interval
-                    #debug_print("Now acc_value is",acc_value)
                 elif acc_value + value_of_interval > target_value:
                     #Start using preference divisions
-                    #debug_print('Which will take us above the target value of',target_value)
                     if trim_at == 0:
                         trim_at = interval.left
 
@@ -90,13 +85,12 @@ class Agent:
                 #elif acc_value == target_value:
                 else:
                     trim_at = interval.right
-                    #debug_print("Placing trim at",trim_at)
                     break
 
             #Because this trim may not be added to the piece, hash the value of a copied piece
             new_piece = copy(piece)
             new_piece.trims = [Trim(self, trim_at)]
-            self.cached_values[hash(new_piece)] = desired_value
+            self.cached_values[new_piece.hash_info()] = desired_value
 
             return Trim(self, trim_at)
 
@@ -142,27 +136,22 @@ class Agent:
     Given a slice, the agent must be able to assign consistent, proportional value to the slice 
     '''
     def get_value(self, piece, count=True, whole_piece=False, use_cache=True):
-        if use_cache and hash(piece) in self.cached_values and not whole_piece:
-            #print('Using cache for',piece,'with hash_info:',piece.hash_info())
-            #print('  which hashes to', hash(piece))
-            #print('  and returns cached value:', self.cached_values[hash(piece)])
-            return self.cached_values[hash(piece)]
+        if use_cache and piece.hash_info() in self.cached_values and not whole_piece:
+            return self.cached_values[piece.hash_info()]
 
         if count: 
             self.value_count +=1
         if whole_piece:
             cut_piece = piece
         else:
-            #print('Now lets get after rightmost_trim!!!')
             cut_piece = piece.get_after_rightmost_trim()
-            #print('Finished getting after rightmost')
 
         sum_value = 0
         for interval in cut_piece.intervals:
             sum_value += self.value_up_to(interval.right) - self.value_up_to(interval.left)
 
         #Cache the computed value
-        self.cached_values[hash(piece)] = sum_value
+        self.cached_values[piece.hash_info()] = sum_value
         return sum_value
 
     '''
@@ -176,10 +165,7 @@ class Agent:
         assert type(target_value) == Fraction 
         left_piece = copy(piece)
         pieces = []
-        history = []
         for i in range(n-1):
-            #TODO why is this necessary? Otherwise the left_pieces in this loop will sometimes hash to the same value!!????!??
-            history.append(left_piece)
             t = self.get_trim_of_value(left_piece, target_value)
             assert t.x != 0
             left_piece.trims.append(t)
@@ -191,8 +177,8 @@ class Agent:
         pieces.append(left_piece)
         pieces.reverse()
         #Cache all the piece values
-        for p in pieces:
-            self.cached_values[hash(p)] = target_value
+        #for p in pieces:
+        #    self.cached_values[p.hash_info()] = target_value
         return pieces
 
 
@@ -228,7 +214,6 @@ class Piece:
         return self.name
 
     def __hash__(self):
-        #print('Now we hash:',self.hash_info(),' with result',hash(self.hash_info()))
         return hash(self.hash_info())
 
     def hash_info(self):
@@ -311,6 +296,12 @@ class Interval:
 
     def __repr__(self):
         return '['+str(float(self.left))[:5]+', '+str(float(self.right))[:5]+']'
+
+    def __hash__(self):
+        return hash((self.left, self.right))
+
+    def __eq__(self,other):
+        return self.right == other.right and self.left == other.left
 
 class Trim:
 

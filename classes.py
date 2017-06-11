@@ -185,13 +185,13 @@ class Agent:
     '''
     Must be able to output their preference function into a string that can be imported as well
     '''
-    def get_preferences(self):
+    def get_preference_string(self):
         assert False
 
     '''
     Must be able to import a preference string
     '''
-    def set_preferences(self, preferences):
+    def set_preferences(self, preference_string):
         assert False
 
 class Cake:

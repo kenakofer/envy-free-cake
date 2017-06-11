@@ -1,0 +1,8 @@
+# Lines starting with # will be ignored for data reading purposes
+# This file stores the query counts for various runs of subcore
+#
+# In the list of agent preferences, agents are separated by | and the series of numbers are the construction arguments for fractions
+# to build the prefrences. Specifically, numerator followed by denominator, repeat.
+#
+# Columns are:
+# List of agent preferences; trim count; valuation count

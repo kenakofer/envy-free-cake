@@ -68,7 +68,7 @@ class Agent:
             trim_at = Fraction(0)
             #target_value is the amount to trim OFF of the piece after the rightmost trim
             target_value = self.get_value(piece, count=False) - desired_value
-            if target_value <= 0:
+            if target_value < 0:
                 return None
             for interval in piece.intervals:
                 value_of_interval = value_up_to(interval.right) - value_up_to(interval.left)

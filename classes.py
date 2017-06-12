@@ -13,7 +13,7 @@ class Agent:
     division_count gives the number of homogeneous segments to divide the cake into. A larger number better approximates the
     function. The default function to use is a wrapper of random.random() that takes x
     '''
-    def generate_random_preferences(self, division_count, preference_function):
+    def generate_preference_functions_from_function(self, division_count, preference_function):
         division_values = {}
         #Generated evenly spaced values outputted from the function (random by default)
         for i in range(1,division_count+1):
@@ -23,7 +23,14 @@ class Agent:
         factor = division_count / s
         #Adjusted Division Values
         adv = {k: division_values[k]*factor for k in division_values}
-        #Save for later analysis
+        return self.generate_preference_functions_from_adv(adv)
+    
+    def generate_preference_functions_from_adv(self, adv):
+        #Check that the adjusted division values indeed add to the number of divisions
+        count = 0
+        for k in adv:
+            count += adv[k]
+        assert count == len(adv)
         self.adv = adv
         keys = list(adv.keys())
         keys.sort()
@@ -100,7 +107,7 @@ class Agent:
     When created, all an agent has is a function for valuing different slices of cake
     '''
     def __init__(self, division_count = 10, preference_function=myrandom):
-        self.value_up_to, self.get_trim_of_value = self.generate_random_preferences(division_count, preference_function)
+        self.value_up_to, self.get_trim_of_value = self.generate_preference_functions_from_function(division_count, preference_function)
         self.name = 'Agent '+str(random.randint(10000,99999))
         self.trim_count = 0
         self.value_count = 0
@@ -183,16 +190,31 @@ class Agent:
 
 
     '''
-    Must be able to output their preference function into a string that can be imported as well
+    Output the agent's preference function into a string that can be imported as well
     '''
     def get_preference_string(self):
-        assert False
+        string = ""
+        for k in self.adv:
+            f = self.adv[k]
+            string += str(f.numerator) + ' ' + str(f.denominator) + ', '
+        return string[:-2] #Remove last comma and space
 
     '''
-    Must be able to import a preference string
+    Import a preference string of the form of that which was outputted
     '''
     def set_preferences(self, preference_string):
-        assert False
+        fraction_string_list = ','.split(preference_string)
+        self.adv = {}
+        interval = Fraction(1, len(fraction_string_list))
+        x = Fraction(0)
+        for f_s in fraction_string_list:
+            x += interval
+            num = int(f_s[0])
+            den = int(f_s[1])
+            self.adv[x] = Fraction(num, den)
+        assert x == Fraction(1,1)
+
+
 
 class Cake:
     

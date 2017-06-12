@@ -12,8 +12,7 @@ def core_random(agent_number):
     trim_count = sum([a.trim_count for a in agents])
     info_line = ""
     for a in agents:
-        #info_line += a.get_preference_string() + '; '
-        info_line += '1 0, 1 0, 1 0, 1 0, 1 0; '
+        info_line += a.get_preference_string() + '; '
     info_line += '| '
     info_line += str(trim_count) + ' | '
     info_line += str(value_count)
@@ -24,4 +23,5 @@ def core_random(agent_number):
 
 
 if __name__ == '__main__':
-    core_random(4)
+    for i in range(1000):
+        core_random(5)

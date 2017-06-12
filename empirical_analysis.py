@@ -24,4 +24,4 @@ def core_random(agent_number):
 
 if __name__ == '__main__':
     for i in range(1000):
-        core_random(5)
+        core_random(7)

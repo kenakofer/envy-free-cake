@@ -97,7 +97,6 @@ def subcore(pieces, agents, call_signature=""):
 
                 # Forget previous trims
                 for piece in contested_pieces:
-                    #Is this safe? VVVV
                     piece.forget_trims_by_agents(winners)
 
                 subcore(contested_pieces, winners, call_signature = call_signature+' m'+str(m)+'w')
@@ -113,9 +112,7 @@ def subcore(pieces, agents, call_signature=""):
 
             # Forget previous trims
             for piece in contested_pieces:
-                #Is this safe? VVVV
                 piece.forget_trims_by_agents(winners)
-                ##????
                 piece.allocated = None
 
             subcore(contested_pieces, winners, call_signature = call_signature+' m'+str(m))
@@ -133,8 +130,6 @@ def subcore(pieces, agents, call_signature=""):
             
             preferred_uncontested_piece = loser.choose_piece(uncontested_pieces)
             preferred_uncontested_piece.allocated = loser
-
-            # TODO Assert that loser prefers this piece to all contested pieces?
         # END IF/ELSE
 
         # Set all agent favorite piece value
@@ -146,6 +141,7 @@ def subcore(pieces, agents, call_signature=""):
                 agent_check.add(p.allocated)
         assert agent_check == set(agents[:m])
     #END FOR
+    
     assert envy_free(pieces)
     #This next assertion about benchmarks should be implied by envy_free above, but this is useful to remember for the proof:
     for a in agents:

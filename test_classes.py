@@ -43,8 +43,6 @@ class AgentTests(unittest.TestCase):
 
     def test_n_split(self):
         for n in range(2,20):
-            print()
-            print(n)
             cake = Cake()
             a = Agent()
             #a = Agent(division_count=1, preference_function=lambda x: 1)
@@ -59,6 +57,20 @@ class AgentTests(unittest.TestCase):
             #Testing the counts
             #self.assertTrue(a.value_count == 1)
             self.assertTrue(a.trim_count == n-1)
+
+    def test_save_agent_preferences(self):
+        for i in range(200):
+            p = get_random_piece(0,randint(1,20))
+            a = Agent()
+            pref_string = a.get_preference_string()
+            first_value = a.get_value(p)
+            a2 = Agent()
+            a2.set_preferences(pref_string)
+            # print(a2.get_preference_string())
+            # print(pref_string)
+            # print()
+            assert a2.get_preference_string() == pref_string
+            assert a2.get_value(p) == first_value
 
 def get_random_piece(cake, interval_count):
     nums =  sorted([Fraction(random()) for i in range(interval_count*2)])

@@ -30,7 +30,7 @@ class AgentTests(unittest.TestCase):
         # Also, line 5 in the paper was not properly counted by us, raising the bound.
         #worst_cases_for_n_players = { 1: 0, 2: 4, 3: 12, 4: 34, 5: 94, 6: 255, 7: 682, 8: 1807, 9: 4761, 10: 12505, 11: 32791 }
         for n in range(1,7):
-            print(n)
+            #print(n)
             divs = 30
             agents = [
                 Agent(division_count=divs, preference_function=lambda x: x**i) for i in range(1, n+1)
@@ -39,9 +39,26 @@ class AgentTests(unittest.TestCase):
             pieces = core(agents[0], agents, cake.pieces[0])
             trim_count = sum([a.trim_count for a in agents])
             value_count = sum([a.value_count for a in agents])
-            print("sum:",trim_count+value_count)
-            
+            #print("sum:",trim_count+value_count)
             #self.assertTrue( value_count + trim_count <= worst_cases_for_n_players[n] )
+
+    def test_problem_scenarios(self):
+        with open('./problem_scenario', 'r') as f:
+            for line in f.readlines():
+                agent_strings = line.split(';')
+                agents = [Agent() for i in range(len(agent_strings))]
+                for i in range(len(agent_strings)):
+                    agents[i].set_preferences(agent_strings[i])
+                info_line = ''
+                for a in agents:
+                    info_line += a.get_preference_string() + '; '
+                assert info_line[:-2].strip() == line.strip()
+                cake = Cake()
+                core(agents[0], agents, cake.pieces[0])
+                trim_count = sum([a.trim_count for a in agents])
+                value_count = sum([a.value_count for a in agents])
+                print("sum:",trim_count+value_count)
+
 
     def test_preference_powers(self):
         for i in range(5):

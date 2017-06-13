@@ -194,7 +194,7 @@ class Agent:
     '''
     def get_preference_string(self):
         string = ""
-        for k in self.adv:
+        for k in sorted(self.adv.keys()):
             f = self.adv[k]
             string += str(f.numerator) + ' ' + str(f.denominator) + ', '
         return string[:-2] #Remove last comma and space
@@ -203,16 +203,18 @@ class Agent:
     Import a preference string of the form of that which was outputted
     '''
     def set_preferences(self, preference_string):
-        fraction_string_list = ','.split(preference_string)
+        fraction_string_list = preference_string.split(',')
         self.adv = {}
         interval = Fraction(1, len(fraction_string_list))
         x = Fraction(0)
         for f_s in fraction_string_list:
             x += interval
-            num = int(f_s[0])
-            den = int(f_s[1])
+            num = int(f_s.split()[0])
+            den = int(f_s.split()[1])
             self.adv[x] = Fraction(num, den)
         assert x == Fraction(1,1)
+        assert sum([self.adv[k] for k in self.adv]) == len(fraction_string_list)
+        self.value_up_to, self.get_trim_of_value = self.generate_preference_functions_from_adv(self.adv)
 
 
 

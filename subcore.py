@@ -105,6 +105,8 @@ def subcore(pieces, agents, call_signature=""):
                 unallocated_contested_piece = list(filter(lambda p: p.allocated == None, contested_pieces)) [0]
                 new_winner = unallocated_contested_piece.rightmost_cutter()
                 assert new_winner != None
+                assert new_winner not in winners
+                assert new_winner in agents[:m]
                 unallocated_contested_piece.allocated = new_winner
                 winners.append( new_winner )
             #END WHILE

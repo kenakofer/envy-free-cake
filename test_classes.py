@@ -6,30 +6,24 @@ class AgentTests(unittest.TestCase):
     def test_goes_to_1(self):
         for i in range(100):
             a = Agent()
-            cake = Cake()
-            v = a.get_value(cake.pieces[0])
+            v = a.get_value(Piece.get_whole_piece())
             self.assertTrue( v == 1 )
 
     def test_trim_value1(self):
         test_values = list(map(Fraction, [0,1])) + [Fraction(random()) for i in range(10)]
         for v in test_values:
             a = Agent()
-            cake = Cake()
-            p = cake.pieces[0]
+            p = Piece.get_whole_piece()
             t = a.get_trim_of_value(p, v)
             p.trims.append(t)
-            #print('v:',float(v))
-            #print('  ',float(a.get_value(p)))
             self.assertTrue(a.get_value(p) == v)
         
     def test_trim_value2(self):
-        cake = Cake()
-
         test_pieces = []
         test_count=20
         i_num = 10
         for j in range(test_count):
-            test_pieces.append(get_random_piece(cake, i_num))
+            test_pieces.append(get_random_piece(i_num))
 
         for p in test_pieces:
             #print("Piece has intervals",p.intervals)
@@ -43,12 +37,10 @@ class AgentTests(unittest.TestCase):
 
     def test_n_split(self):
         for n in range(2,20):
-            cake = Cake()
             a = Agent()
             #a = Agent(division_count=1, preference_function=lambda x: 1)
             assert len(a.cached_values) == 0
-            piece = get_random_piece(cake, randint(1,50))
-            #piece = cake.pieces[0]
+            piece = get_random_piece(randint(1,50))
             total_value = a.get_value(piece)
             pieces = a.cut_into_n_pieces_of_equal_value(n, piece)
             for p in pieces:
@@ -60,7 +52,7 @@ class AgentTests(unittest.TestCase):
 
     def test_save_agent_preferences(self):
         for i in range(200):
-            p = get_random_piece(0,randint(1,20))
+            p = get_random_piece(randint(1,20))
             a = Agent()
             pref_string = a.get_preference_string()
             first_value = a.get_value(p)
@@ -72,12 +64,12 @@ class AgentTests(unittest.TestCase):
             assert a2.get_preference_string() == pref_string
             assert a2.get_value(p) == first_value
 
-def get_random_piece(cake, interval_count):
+def get_random_piece(interval_count):
     nums =  sorted([Fraction(random()) for i in range(interval_count*2)])
     intervals = []
     for i in range(0,interval_count*2,2):
         intervals.append(Interval(nums[i], nums[i+1]))
-    return Piece(cake, intervals)
+    return Piece(intervals)
       
 
 

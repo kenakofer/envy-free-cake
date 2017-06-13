@@ -59,6 +59,7 @@ class Agent:
         def get_trim_of_value(piece, desired_value, count=True):
             assert type(desired_value) == Fraction
 
+            # TODO should we always increment trim_count?
             if count: self.trim_count += 1
 
             if len(piece.trims) > 0:
@@ -67,6 +68,7 @@ class Agent:
             acc_value = Fraction(0)
             trim_at = Fraction(0)
             #target_value is the amount to trim OFF of the piece after the rightmost trim
+            # TODO should we count these get_value calls?
             target_value = self.get_value(piece, count=False) - desired_value
             if target_value < 0:
                 return None
@@ -216,22 +218,16 @@ class Agent:
         assert sum([self.adv[k] for k in self.adv]) == len(fraction_string_list)
         self.value_up_to, self.get_trim_of_value = self.generate_preference_functions_from_adv(self.adv)
 
-
-
-class Cake:
-    
-    def __init__(self):
-        self.pieces = [Piece(self, [Interval(Fraction(0), Fraction(1))])] #Begin with a single slice the size of the cake
-
 class Piece:
 
-    def __init__(self, cake, intervals):
-        self.cake = cake
+    def get_whole_piece():
+        return Piece([Interval(Fraction(0), Fraction(1))])
+
+    def __init__(self, intervals):
         self.intervals = intervals
         self.allocated = None
         self.trims = []
         self.pending_trims = []
-        self.tags = [] #Use tags to mark pieces with additional information. For example, if someone claims a piece.
         self.name = 'Piece '+str(random.randint(10000,99999))
 
     def __repr__(self):
@@ -273,15 +269,15 @@ class Piece:
                 if self.intervals[i].left <= trim.x < self.intervals[i].right:
                     new_interval = Interval(trim.x, self.intervals[i].right)
                     if i < len(self.intervals)-1:
-                        return Piece(self.cake, [new_interval] + self.intervals[i+1:])
+                        return Piece([new_interval] + self.intervals[i+1:])
                     else:
-                        return Piece(self.cake, [new_interval])
+                        return Piece([new_interval])
                 elif trim.x == self.intervals[i].right:
                     if i < len(self.intervals)-1:
-                        return Piece(self.cake, self.intervals[i+1:])
+                        return Piece(self.intervals[i+1:])
                     else:
                         #It IS possible to trim a piece to 0 width
-                        return Piece(self.cake, [Interval(trim.x, trim.x)])
+                        return Piece([Interval(trim.x, trim.x)])
         else:
             return copy(self)
 
@@ -296,15 +292,15 @@ class Piece:
                 new_left_interval = Interval(self.intervals[i].left, trim.x)
                 new_right_interval = Interval(trim.x, self.intervals[i].right)
                 if i < len(self.intervals)-1:
-                    return Piece(self.cake, self.intervals[:i] + [new_left_interval]), Piece(self.cake, [new_right_interval] + self.intervals[i+1:])
+                    return Piece(self.intervals[:i] + [new_left_interval]), Piece([new_right_interval] + self.intervals[i+1:])
                 else:
-                    return Piece(self.cake, self.intervals[:i] + [new_left_interval]), Piece(self.cake, [new_right_interval])
+                    return Piece(self.intervals[:i] + [new_left_interval]), Piece([new_right_interval])
             elif trim.x == self.intervals[i].right:
                 if i < len(self.intervals)-1:
-                    return Piece(self.cake, self.intervals[:i+1]), Piece(self.cake, self.intervals[i+1:])
+                    return Piece(self.intervals[:i+1]), Piece(self.intervals[i+1:])
                 else:
                     #It IS possible to trim a piece to 0 width
-                    return Piece(self.cake, self.intervals[:]), Piece(self.cake, [Interval(trim.x, trim.x)])
+                    return Piece(self.intervals[:]), Piece([Interval(trim.x, trim.x)])
 
     def forget_trims_by_agents(self, agents):
         keep_trims = list(filter(lambda t: t.owner not in agents, self.trims))

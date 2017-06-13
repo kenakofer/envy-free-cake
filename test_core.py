@@ -72,6 +72,16 @@ class AgentTests(unittest.TestCase):
             agents = [Agent(random.randint(5,23)) for i in range(n)]
             pieces = core(agents[0], agents, Piece.get_whole_piece())
             self.assertTrue( True )
+
+    def test_residue_extraction(self):
+        for n in range(20):
+            agents = [Agent(random.randint(5,23)) for i in range(6)]
+            pieces = core(agents[0], agents, Piece.get_whole_piece())
+            residue = Piece.extract_residue_from_pieces(pieces)
+            for a in agents:
+                pieces_value = sum([a.get_value(p) for p in pieces])
+                residue_value = a.get_value(residue)
+                assert pieces_value + residue_value == 1
     
 
 def main():

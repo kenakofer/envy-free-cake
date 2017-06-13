@@ -220,6 +220,23 @@ class Agent:
 
 class Piece:
 
+    def extract_residue_from_pieces(pieces):
+        residue = Piece([])
+        for piece in pieces:
+            if len(piece.trims) > 0:
+                new_residue_intervals = piece.extract_residue_from_piece().intervals
+                residue.intervals.extend(new_residue_intervals)
+        return residue
+
+    def extract_residue_from_piece(self):
+        if len(self.trims) > 0:
+            left, right = self.split_at_rightmost_trim()
+            self.intervals = right.intervals
+            self.trims = []
+            return left
+        else:
+            return None
+
     def get_whole_piece():
         return Piece([Interval(Fraction(0), Fraction(1))])
 

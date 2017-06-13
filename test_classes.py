@@ -47,7 +47,6 @@ class AgentTests(unittest.TestCase):
                 self.assertTrue(a.get_value(p, count=False) == Fraction(total_value, n))
                 self.assertTrue(pieces.count(p) == 1)
             #Testing the counts
-            #self.assertTrue(a.value_count == 1)
             self.assertTrue(a.trim_count == n-1)
 
     def test_save_agent_preferences(self):
@@ -58,9 +57,6 @@ class AgentTests(unittest.TestCase):
             first_value = a.get_value(p)
             a2 = Agent()
             a2.set_preferences(pref_string)
-            # print(a2.get_preference_string())
-            # print(pref_string)
-            # print()
             assert a2.get_preference_string() == pref_string
             assert a2.get_value(p) == first_value
 

@@ -82,6 +82,13 @@ class AgentTests(unittest.TestCase):
                 pieces_value = sum([a.get_value(p) for p in pieces])
                 residue_value = a.get_value(residue)
                 assert pieces_value + residue_value == 1
+
+    def test_domination_check(self):
+        for n in range(20):
+            agents = [Agent(random.randint(5,23)) for i in range(6)]
+            pieces = core(agents[0], agents, Piece.get_whole_piece())
+            residue = Piece.extract_residue_from_pieces(pieces)
+            print(Agent.get_dominating_set(agents, pieces, residue))
     
 
 def main():

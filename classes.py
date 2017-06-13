@@ -2,9 +2,49 @@ import random
 from copy import copy
 from fractions import Fraction
 from debug import *
+from itertools import combinations
 
 
 class Agent:
+
+    def get_dominations(agents, pieces, residue):
+        for p in pieces:
+            if p.allocated != None:
+                #Make it easier to reference an agent's allocated piece
+                p.allocated.piece = p
+        for a1 in agents:
+            a1.dominations = set([])
+            for a2 in agents:
+                #Test if a1 dominates a2
+                dominates = a1.get_value(a1.piece) >= a1.get_value(a2.piece) + a1.get_value(residue)
+                if dominates:
+                    a1.dominations.add(a2)
+
+    # TODO this is order 2^n. Is there a better way?
+    def get_dominating_set(agents, pieces, residue):
+        Agent.get_dominations(agents, pieces, residue)
+        for n in range(len(agents)-1, 0, -1):
+            possibilities = set(combinations(agents, n))
+            for possibility in possibilities:
+                dominators = set(possibility)
+                dominated = set(agents) - dominators
+                good = True
+                for d1 in dominators:
+                    for d2 in dominated:
+                        if not d2 in d1.dominations:
+                            good = False
+                            break
+                    if not good:
+                        break
+                if good:
+                    return (dominators, dominated)
+
+        return None
+
+
+
+
+
 
     def myrandom(x):
         return random.random()
@@ -252,6 +292,13 @@ class Piece:
 
     def __hash__(self):
         return hash(self.hash_info())
+
+    def __add__(self, other):
+        assert self.allocated == other.allocated
+        piece = copy(self)
+        piece.intervals.extend(other.intervals)
+        # TODO assert that intervals do not overlap?
+        return piece
 
     def hash_info(self):
         t = self.get_rightmost_trim()

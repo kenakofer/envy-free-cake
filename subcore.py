@@ -119,11 +119,12 @@ def subcore(pieces, agents, call_signature=""):
             subcore(contested_pieces, winners, call_signature = call_signature+' m'+str(m))
             
             losers = list(set(agents[:m]) - set(winners))
-            ##TODO DEBUG REMOVE!!!!
+            
+            ## There should be exactly one loser. If not, we have some debugging to do
             if len(losers) != 1:
-                debug_print("Winners are:",winners)
-                debug_print("Losers  are:",losers)
-                debug_print("Agents[:m] :",agents[:m])
+                print("Winners are:",winners)
+                print("Losers  are:",losers)
+                print("Agents[:m] :",agents[:m])
                 assert False
 
             loser = losers[0]

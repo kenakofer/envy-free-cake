@@ -2,9 +2,49 @@ import random
 from copy import copy
 from fractions import Fraction
 from debug import *
+from itertools import combinations
 
 
 class Agent:
+
+    def get_dominations(agents, pieces, residue):
+        for p in pieces:
+            if p.allocated != None:
+                #Make it easier to reference an agent's allocated piece
+                p.allocated.piece = p
+        for a1 in agents:
+            a1.dominations = set([])
+            for a2 in agents:
+                #Test if a1 dominates a2
+                dominates = a1.get_value(a1.piece) >= a1.get_value(a2.piece) + a1.get_value(residue)
+                if dominates:
+                    a1.dominations.add(a2)
+
+    # TODO this is order 2^n. Is there a better way?
+    def get_dominating_set(agents, pieces, residue):
+        Agent.get_dominations(agents, pieces, residue)
+        for n in range(len(agents)-1, 0, -1):
+            possibilities = set(combinations(agents, n))
+            for possibility in possibilities:
+                dominators = set(possibility)
+                dominated = set(agents) - dominators
+                good = True
+                for d1 in dominators:
+                    for d2 in dominated:
+                        if not d2 in d1.dominations:
+                            good = False
+                            break
+                    if not good:
+                        break
+                if good:
+                    return (dominators, dominated)
+
+        return None
+
+
+
+
+
 
     def myrandom(x):
         return random.random()
@@ -59,6 +99,7 @@ class Agent:
         def get_trim_of_value(piece, desired_value, count=True):
             assert type(desired_value) == Fraction
 
+            # TODO should we always increment trim_count?
             if count: self.trim_count += 1
 
             if len(piece.trims) > 0:
@@ -67,6 +108,7 @@ class Agent:
             acc_value = Fraction(0)
             trim_at = Fraction(0)
             #target_value is the amount to trim OFF of the piece after the rightmost trim
+            # TODO should we count these get_value calls?
             target_value = self.get_value(piece, count=False) - desired_value
             if target_value < 0:
                 return None
@@ -216,22 +258,33 @@ class Agent:
         assert sum([self.adv[k] for k in self.adv]) == len(fraction_string_list)
         self.value_up_to, self.get_trim_of_value = self.generate_preference_functions_from_adv(self.adv)
 
-
-
-class Cake:
-    
-    def __init__(self):
-        self.pieces = [Piece(self, [Interval(Fraction(0), Fraction(1))])] #Begin with a single slice the size of the cake
-
 class Piece:
 
-    def __init__(self, cake, intervals):
-        self.cake = cake
+    def extract_residue_from_pieces(pieces):
+        residue = Piece([])
+        for piece in pieces:
+            if len(piece.trims) > 0:
+                new_residue_intervals = piece.extract_residue_from_piece().intervals
+                residue.intervals.extend(new_residue_intervals)
+        return residue
+
+    def extract_residue_from_piece(self):
+        if len(self.trims) > 0:
+            left, right = self.split_at_rightmost_trim()
+            self.intervals = right.intervals
+            self.trims = []
+            return left
+        else:
+            return None
+
+    def get_whole_piece():
+        return Piece([Interval(Fraction(0), Fraction(1))])
+
+    def __init__(self, intervals):
         self.intervals = intervals
         self.allocated = None
         self.trims = []
         self.pending_trims = []
-        self.tags = [] #Use tags to mark pieces with additional information. For example, if someone claims a piece.
         self.name = 'Piece '+str(random.randint(10000,99999))
 
     def __repr__(self):
@@ -239,6 +292,13 @@ class Piece:
 
     def __hash__(self):
         return hash(self.hash_info())
+
+    def __add__(self, other):
+        assert self.allocated == other.allocated
+        piece = copy(self)
+        piece.intervals.extend(other.intervals)
+        # TODO assert that intervals do not overlap?
+        return piece
 
     def hash_info(self):
         t = self.get_rightmost_trim()
@@ -273,15 +333,15 @@ class Piece:
                 if self.intervals[i].left <= trim.x < self.intervals[i].right:
                     new_interval = Interval(trim.x, self.intervals[i].right)
                     if i < len(self.intervals)-1:
-                        return Piece(self.cake, [new_interval] + self.intervals[i+1:])
+                        return Piece([new_interval] + self.intervals[i+1:])
                     else:
-                        return Piece(self.cake, [new_interval])
+                        return Piece([new_interval])
                 elif trim.x == self.intervals[i].right:
                     if i < len(self.intervals)-1:
-                        return Piece(self.cake, self.intervals[i+1:])
+                        return Piece(self.intervals[i+1:])
                     else:
                         #It IS possible to trim a piece to 0 width
-                        return Piece(self.cake, [Interval(trim.x, trim.x)])
+                        return Piece([Interval(trim.x, trim.x)])
         else:
             return copy(self)
 
@@ -296,15 +356,15 @@ class Piece:
                 new_left_interval = Interval(self.intervals[i].left, trim.x)
                 new_right_interval = Interval(trim.x, self.intervals[i].right)
                 if i < len(self.intervals)-1:
-                    return Piece(self.cake, self.intervals[:i] + [new_left_interval]), Piece(self.cake, [new_right_interval] + self.intervals[i+1:])
+                    return Piece(self.intervals[:i] + [new_left_interval]), Piece([new_right_interval] + self.intervals[i+1:])
                 else:
-                    return Piece(self.cake, self.intervals[:i] + [new_left_interval]), Piece(self.cake, [new_right_interval])
+                    return Piece(self.intervals[:i] + [new_left_interval]), Piece([new_right_interval])
             elif trim.x == self.intervals[i].right:
                 if i < len(self.intervals)-1:
-                    return Piece(self.cake, self.intervals[:i+1]), Piece(self.cake, self.intervals[i+1:])
+                    return Piece(self.intervals[:i+1]), Piece(self.intervals[i+1:])
                 else:
                     #It IS possible to trim a piece to 0 width
-                    return Piece(self.cake, self.intervals[:]), Piece(self.cake, [Interval(trim.x, trim.x)])
+                    return Piece(self.intervals[:]), Piece([Interval(trim.x, trim.x)])
 
     def forget_trims_by_agents(self, agents):
         keep_trims = list(filter(lambda t: t.owner not in agents, self.trims))

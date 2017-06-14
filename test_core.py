@@ -5,7 +5,7 @@ from core import *
 from time import sleep
 
 class AgentTests(unittest.TestCase):
-
+    
     def test_best_case(self):
         debug_print("Testing identical preferences (best case) for value_count and trim_count")
         divs = 29
@@ -13,8 +13,7 @@ class AgentTests(unittest.TestCase):
         agents = [
             Agent(division_count=divs, preference_function=lambda x: x**2) for i in range(n)
         ]
-        cake = Cake()
-        pieces = core(agents[0], agents, cake.pieces[0])
+        pieces = core(agents[0], agents, Piece.get_whole_piece())
 
         self.assertTrue(agents[0].value_count == 1)
         self.assertTrue(agents[0].trim_count == n-1)
@@ -35,8 +34,7 @@ class AgentTests(unittest.TestCase):
             agents = [
                 Agent(division_count=divs, preference_function=lambda x: x**i) for i in range(1, n+1)
             ]
-            cake = Cake()
-            pieces = core(agents[0], agents, cake.pieces[0])
+            pieces = core(agents[0], agents, Piece.get_whole_piece())
             trim_count = sum([a.trim_count for a in agents])
             value_count = sum([a.value_count for a in agents])
             #print("sum:",trim_count+value_count)
@@ -53,19 +51,16 @@ class AgentTests(unittest.TestCase):
                 for a in agents:
                     info_line += a.get_preference_string() + '; '
                 assert info_line[:-2].strip() == line.strip()
-                cake = Cake()
-                core(agents[0], agents, cake.pieces[0])
+                core(agents[0], agents, Piece.get_whole_piece())
                 trim_count = sum([a.trim_count for a in agents])
                 value_count = sum([a.value_count for a in agents])
-                print("sum:",trim_count+value_count)
 
-
+    
     def test_preference_powers(self):
         for i in range(5):
             for n in [5]:
                 agents = [Agent(division_count=20, preference_function=lambda x: x**Fraction(randint(0,5), randint(1,5))) for j in range(n)]
-                cake = Cake()
-                pieces = core(agents[0], agents, cake.pieces[0])
+                pieces = core(agents[0], agents, Piece.get_whole_piece())
                 self.assertTrue( True )
 
 
@@ -75,9 +70,26 @@ class AgentTests(unittest.TestCase):
     def test_preference_random(self):
         for n in range(2,6):
             agents = [Agent(random.randint(5,23)) for i in range(n)]
-            cake = Cake()
-            pieces = core(agents[0], agents, cake.pieces[0])
+            pieces = core(agents[0], agents, Piece.get_whole_piece())
             self.assertTrue( True )
+
+    def test_residue_extraction(self):
+        for n in range(20):
+            agents = [Agent(random.randint(5,23)) for i in range(6)]
+            pieces = core(agents[0], agents, Piece.get_whole_piece())
+            residue = Piece.extract_residue_from_pieces(pieces)
+            for a in agents:
+                pieces_value = sum([a.get_value(p) for p in pieces])
+                residue_value = a.get_value(residue)
+                assert pieces_value + residue_value == 1
+
+    def test_domination_check(self):
+        for n in range(20):
+            agents = [Agent(random.randint(5,23)) for i in range(6)]
+            pieces = core(agents[0], agents, Piece.get_whole_piece())
+            residue = Piece.extract_residue_from_pieces(pieces)
+            print(Agent.get_dominating_set(agents, pieces, residue))
+    
 
 def main():
     unittest.main()

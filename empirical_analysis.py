@@ -1,16 +1,14 @@
 from classes import *
 from core import *
+from random import randint
 
 OUTFILE = './data.out'
 
-def core_random(agent_number):
-    divisions = 10
-    agents = [Agent(division_count=divisions) for i in range(agent_number)]
-    write_scenario_to_file(agents, OUTFILE)
+def write_output(string):
+    with open(OUTFILE, 'a') as f:
+        print(string, file=f)
 
-    
-
-def write_scenario_to_file(agents, filename):
+def write_scenario_to_file(agents):
     info_line = ""
     for a in agents:
         info_line += a.get_preference_string() + '; '
@@ -26,36 +24,40 @@ def write_scenario_to_file(agents, filename):
     info_line += '| '
     info_line += str(trim_count) + ' | '
     info_line += str(value_count)
-    with open(filename, 'a') as f:
-        print(info_line, file=f)
+    write_output(info_line)
 
+def core_random(player_number_list, count):
+    for n in player_number_list:
+        for i in range(count):
+            agents = [Agent(division_count=randint(10,20)) for i in range(n)]
+            write_scenario_to_file(agents)
 
-def core_worst_case():
+def core_worst_case(player_number_list):
         debug_print("Testing a possible worst case call")
-        for n in range(4,12):
+        for n in player_number_list:
+            write_output('# Worst (???) case for '+str(n)+' Agents')
             print(n)
             divs = 30
             agents = [
                 Agent(division_count=divs, preference_function=lambda x: x**i) for i in range(1, n+1)
             ]
-            write_scenario_to_file(agents, OUTFILE)
+            write_scenario_to_file(agents)
             #print("sum:",trim_count+value_count)
-            #self.assertTrue( value_count + trim_count <= worst_cases_for_n_players[n] )
 
-def core_best_case():
+def core_best_case(player_number_list):
         debug_print("Testing a possible best case call")
-        for n in range(4,12):
+        for n in player_number_list:
             print(n)
+            write_output('# Best case for '+str(n)+' Agents')
             divs = 1
             agents = [
                 Agent(division_count=divs, preference_function=lambda x: 1) for i in range(1, n+1)
             ]
-            write_scenario_to_file(agents, OUTFILE)
+            write_scenario_to_file(agents)
             #print("sum:",trim_count+value_count)
-            #self.assertTrue( value_count + trim_count <= worst_cases_for_n_players[n] )
 
 
 if __name__ == '__main__':
-    for n in range(8,12):
-        for i in range(1000):
-            core_random(n)
+    core_best_case(range(4,12))
+    core_worst_case(range(4,12))
+    core_random(range(4,12),1000)

@@ -31,12 +31,24 @@ def write_scenario_to_file(agents, filename):
 
 
 def core_worst_case():
-        debug_print("Testing a possible worst case call to prints")
+        debug_print("Testing a possible worst case call")
         for n in range(4,12):
             print(n)
             divs = 30
             agents = [
                 Agent(division_count=divs, preference_function=lambda x: x**i) for i in range(1, n+1)
+            ]
+            write_scenario_to_file(agents, OUTFILE)
+            #print("sum:",trim_count+value_count)
+            #self.assertTrue( value_count + trim_count <= worst_cases_for_n_players[n] )
+
+def core_best_case():
+        debug_print("Testing a possible best case call")
+        for n in range(4,12):
+            print(n)
+            divs = 1
+            agents = [
+                Agent(division_count=divs, preference_function=lambda x: 1) for i in range(1, n+1)
             ]
             write_scenario_to_file(agents, OUTFILE)
             #print("sum:",trim_count+value_count)

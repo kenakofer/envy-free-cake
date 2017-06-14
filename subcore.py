@@ -22,16 +22,8 @@ def subcore(pieces, agents, call_signature=""):
         for t in p.trims:
             assert t.owner not in agents
 
-    # Set all agent favorite piece value in variable a
-    # TODO cache agent values
-    for agent in agents:
-        agent.preferred_value = agent.get_value( agent.choose_piece(pieces) )
-
-
     for m in range(1,len(agents)+1):
         debug_print("m=",m)
-
-
 
         # If the next agent's preferred piece is unallocated
         # IMPORTANT: This line breaks our previous upper bound for the operation of sub_core, becaus
@@ -52,7 +44,6 @@ def subcore(pieces, agents, call_signature=""):
                 uncontested_max_value = max( [agent.get_value(p) for p in uncontested_pieces] )
                 debug_print(agent, "uncontested max value is",float(uncontested_max_value))
                 for piece in contested_pieces:
-                    debug_print("Whereas",piece,"is worth",float(agent.get_value(piece, count=False)))
                     #Because new valuations are made from the rightmost trim, don't immediately add these new trims to the piece.
                     possible_trim =  agent.get_trim_of_value(piece, uncontested_max_value)
                     if possible_trim != None:
@@ -69,10 +60,11 @@ def subcore(pieces, agents, call_signature=""):
 
             #Kenan asks why benchmarks are even necessary
             #They don't modify the flow of code at all, but they're used in the proof
-            #TODO replace this with cached value checks
+            '''
             for agent in agents:
                 agent.benchmark = max( [agent.get_value(p) for p in uncontested_pieces] )
-                
+            '''
+
             winners = []
             for piece in contested_pieces:
                 winner = piece.rightmost_cutter()
@@ -134,21 +126,16 @@ def subcore(pieces, agents, call_signature=""):
             preferred_uncontested_piece = loser.choose_piece(uncontested_pieces)
             preferred_uncontested_piece.allocated = loser
         # END IF/ELSE
-
-        # Set all agent favorite piece value
-        agent_check = set([])
-        for p in pieces:
-            if p.allocated != None:
-                p.allocated.preferred_value = agent.get_value(p, count=False)
-                assert p.allocated not in agent_check
-                agent_check.add(p.allocated)
-        assert agent_check == set(agents[:m])
     #END FOR
     
+    #These assertions cache values that would otherwise not be cached. Be sure to leave this commented for accuracy in value_count
+    '''
     assert envy_free(pieces)
     #This next assertion about benchmarks should be implied by envy_free above, but this is useful to remember for the proof:
     for a in agents:
         assert a.benchmark <= a.get_value(a.choose_piece(pieces, count=False), count=False)
+    
+    '''
     debug_print("Returning from subcore with",len(pieces),"pieces and",len(agents),'agents')
     debug_print()
     return pieces

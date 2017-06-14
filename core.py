@@ -11,5 +11,8 @@ def core(agent_to_cut, agents, piece):
     unallocated_pieces = [p for p in pieces if p.allocated == None]
     assert len(unallocated_pieces) == 1
     unallocated_pieces[0].allocated = agent_to_cut
+    # Leave commented to avoid caching values that will mess up value_counts
+    '''
     assert envy_free(pieces)
+    '''
     return pieces

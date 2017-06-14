@@ -172,7 +172,8 @@ class Agent:
         for p in pieces:
             max_value = max(max_value, self.get_value(p, count=count))
         for p in pieces:
-            if self.get_value(p, count=False) == max_value:
+
+            if self.get_value(p) == max_value:
                 if p.allocated == None:
                     #Immediately return an unallocated piece that we come across
                     return p
@@ -202,7 +203,9 @@ class Agent:
             sum_value += self.value_up_to(interval.right) - self.value_up_to(interval.left)
 
         #Cache the computed value
-        self.cached_values[piece.hash_info()] = sum_value
+        if count:
+            self.cached_values[piece.hash_info()] = sum_value
+
         return sum_value
 
     '''
@@ -226,10 +229,13 @@ class Agent:
             pieces.append(right_piece)
         #Pieces were added in the wrong order, so reverse!
         pieces.append(left_piece)
+        #Cache the left piece's value
+        self.cached_values[left_piece.hash_info()] = target_value
         pieces.reverse()
-        #Cache all the piece values
-        #for p in pieces:
-        #    self.cached_values[p.hash_info()] = target_value
+        #Assert that all pieces have indeed been hashed (which mostly happens inside the trim function)
+        for p in pieces:
+            assert p.hash_info() in self.cached_values
+
         return pieces
 
 
@@ -308,14 +314,8 @@ class Piece:
         return piece
 
     def hash_info(self):
-        t = self.get_rightmost_trim()
-        if t != None:
-            right = t.x
-        elif len(self.intervals) > 0:
-            right = self.intervals[0].left
-        else:
-            right = 0
-        return (tuple(self.intervals[:]), right)
+        p = self.get_after_rightmost_trim()
+        return (tuple(p.intervals[:]))
 
     def rightmost_cutter(self):
         trim = self.get_rightmost_trim()
@@ -418,7 +418,7 @@ def envy_free(pieces):
         if p.allocated != None:
             agent = p.allocated
             debug_print(agent,"is allocated this piece:",p,"which has value",float(agent.get_value(p, count=False)))
-            debug_print("Said agent would prefer a piece of value:",float(agent.get_value(agent.choose_piece(pieces, count=False), count=False)))
-            if agent.get_value(agent.choose_piece(pieces, count=False), count=False) > agent.get_value(p, count=False):
+            debug_print("They would prefer a piece of value:",float(agent.get_value(agent.choose_piece(pieces, count=False))))
+            if agent.get_value(agent.choose_piece(pieces)) > agent.get_value(p):
                 return False
     return True

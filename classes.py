@@ -98,6 +98,7 @@ class Agent:
         '''
         def get_trim_of_value(piece, desired_value, count=True):
             assert type(desired_value) == Fraction
+            assert sorted(piece.intervals) == piece.intervals
 
             # TODO should we always increment trim_count?
             if count: self.trim_count += 1
@@ -109,6 +110,7 @@ class Agent:
             trim_at = Fraction(0)
             #target_value is the amount to trim OFF of the piece after the rightmost trim
             # TODO should we count these get_value calls?
+            # We agreed that if we incremented trim_count, the get_value should not count
             target_value = self.get_value(piece, count=False) - desired_value
             if target_value < 0:
                 return None
@@ -266,7 +268,11 @@ class Piece:
             if len(piece.trims) > 0:
                 new_residue_intervals = piece.extract_residue_from_piece().intervals
                 residue.intervals.extend(new_residue_intervals)
-        return residue
+        residue.intervals.sort()
+        if len(residue.intervals) > 0:
+            return residue
+        else:
+            return None
 
     def extract_residue_from_piece(self):
         if len(self.trims) > 0:
@@ -297,6 +303,7 @@ class Piece:
         assert self.allocated == other.allocated
         piece = copy(self)
         piece.intervals.extend(other.intervals)
+        piece.intervals.sort()
         # TODO assert that intervals do not overlap?
         return piece
 
@@ -304,8 +311,10 @@ class Piece:
         t = self.get_rightmost_trim()
         if t != None:
             right = t.x
-        else:
+        elif len(self.intervals) > 0:
             right = self.intervals[0].left
+        else:
+            right = 0
         return (tuple(self.intervals[:]), right)
 
     def rightmost_cutter(self):
@@ -327,6 +336,7 @@ class Piece:
 
     def get_after_rightmost_trim(self):
         trim = self.get_rightmost_trim()
+        assert sorted(self.intervals) == self.intervals
         if trim != None:
             assert any( [i.left <= trim.x <= i.right for i in self.intervals] )
             for i in range(len(self.intervals)):
@@ -347,6 +357,7 @@ class Piece:
 
     def split_at_rightmost_trim(self):
         trim = self.get_rightmost_trim()
+        assert sorted(self.intervals) == self.intervals
         if trim == None:
             raise Exception('No trim to split at')
         assert any( [i.left <= trim.x <= i.right for i in self.intervals] )
@@ -387,6 +398,9 @@ class Interval:
 
     def __eq__(self,other):
         return self.right == other.right and self.left == other.left
+
+    def __lt__(self, other):
+        return self.left < other.left
 
 class Trim:
 

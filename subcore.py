@@ -36,11 +36,7 @@ def subcore(pieces, agents, call_signature=""):
             uncontested_pieces = list(filter(lambda p: p.allocated == None, pieces))
             assert len(uncontested_pieces) >= 1
 
-            #This assertion "never makes sense" --Christian Bechler, 2017-06-06 12:20 EST
-            #assert all([p.rightmost_cutter() not in agents[:m] for p in contested_pieces])
-
             for agent in agents[:m]:
-                #TODO replace these get_value calls with cached value checking
                 uncontested_max_value = max( [agent.get_value(p) for p in uncontested_pieces] )
                 debug_print(agent, "uncontested max value is",float(uncontested_max_value))
                 for piece in contested_pieces:

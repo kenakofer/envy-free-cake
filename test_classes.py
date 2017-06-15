@@ -1,5 +1,6 @@
 import unittest
-from classes import *
+from agent import *
+from piece import *
 from random import *
 
 class AgentTests(unittest.TestCase):

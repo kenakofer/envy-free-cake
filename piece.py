@@ -5,6 +5,15 @@ from debug import *
 
 class Piece:
 
+    def is_empty(piece):
+        if piece == None:
+            return True
+        else:
+            for i in piece.intervals:
+                if i.left != i.right:
+                    return False
+            return True
+
     def extract_residue_from_pieces(pieces):
         residue = Piece([])
         for piece in pieces:
@@ -126,8 +135,8 @@ class Interval:
         assert type(self.left) == Fraction
         assert type(self.right) == Fraction
 
-    def overlap(self, other):
-        return self.left < other.right and self.right < other.left
+    def overlaps(self, other):
+        return self.left < other.right and self.right > other.left
 
     def __repr__(self):
         return '['+str(float(self.left))[:5]+', '+str(float(self.right))[:5]+']'

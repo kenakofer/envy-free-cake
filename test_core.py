@@ -70,13 +70,13 @@ class AgentTests(unittest.TestCase):
 
     def test_preference_random(self):
         for n in range(2,6):
-            agents = [Agent(random.randint(5,23)) for i in range(n)]
+            agents = [Agent(randint(5,23)) for i in range(n)]
             pieces = core(agents[0], agents, Piece.get_whole_piece())
             self.assertTrue( True )
 
     def test_residue_extraction(self):
         for n in range(20):
-            agents = [Agent(random.randint(5,23)) for i in range(6)]
+            agents = [Agent(randint(5,23)) for i in range(6)]
             pieces = core(agents[0], agents, Piece.get_whole_piece())
             residue = Piece.extract_residue_from_pieces(pieces)
             for a in agents:
@@ -89,7 +89,7 @@ class AgentTests(unittest.TestCase):
 
     def test_domination_check(self):
         for n in range(20):
-            agents = [Agent(random.randint(5,23)) for i in range(6)]
+            agents = [Agent(randint(5,23)) for i in range(6)]
             pieces = core(agents[0], agents, Piece.get_whole_piece())
             residue = Piece.extract_residue_from_pieces(pieces)
             #print(Agent.get_dominating_set(agents, pieces, residue))

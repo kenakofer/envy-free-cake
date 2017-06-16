@@ -1,8 +1,10 @@
 import unittest
 from agent import *
 from piece import *
-from random import *
+import random
+from core import *
 from debug import *
+from copy import copy
 
 class AgentTests(unittest.TestCase):
     def test_goes_to_1(self):
@@ -12,7 +14,7 @@ class AgentTests(unittest.TestCase):
             self.assertTrue( v == 1 )
 
     def test_trim_value1(self):
-        test_values = list(map(Fraction, [0,1])) + [Fraction(random()) for i in range(10)]
+        test_values = list(map(Fraction, [0,1])) + [Fraction(random.random()) for i in range(10)]
         for v in test_values:
             a = Agent()
             p = Piece.get_whole_piece()
@@ -31,7 +33,7 @@ class AgentTests(unittest.TestCase):
         for p in test_pieces:
             #print("Piece has intervals",p.intervals)
             a = Agent()
-            v = Fraction(random()) * a.get_value(p)
+            v = Fraction(random.random()) * a.get_value(p)
             t = a.get_trim_of_value(p, v)
             p.trims.append(t)
             #print('v:',float(v))
@@ -43,7 +45,7 @@ class AgentTests(unittest.TestCase):
             a = Agent()
             #a = Agent(division_count=1, preference_function=lambda x: 1)
             assert len(a.cached_values) == 0
-            piece = get_random_piece(randint(1,50))
+            piece = get_random_piece(random.randint(1,50))
             total_value = a.get_value(piece)
             pieces = a.cut_into_n_pieces_of_equal_value(n, piece)
             for p in pieces:
@@ -54,7 +56,7 @@ class AgentTests(unittest.TestCase):
 
     def test_save_agent_preferences(self):
         for i in range(200):
-            p = get_random_piece(randint(1,20))
+            p = get_random_piece(random.randint(1,20))
             a = Agent()
             pref_string = a.get_preference_string()
             first_value = a.get_value(p)
@@ -63,8 +65,23 @@ class AgentTests(unittest.TestCase):
             assert a2.get_preference_string() == pref_string
             assert a2.get_value(p) == first_value
 
+    def test_preference_fractalization(self):
+        for n in range(2,6):
+            agents = [Agent(random.randint(5,23)) for i in range(n)]
+            pieces = core(agents[0], agents, Piece.get_whole_piece())
+            self.assertTrue( True )
+            residue = Piece.extract_residue_from_pieces(pieces)
+            if not Piece.is_empty(residue):
+                for a in agents:
+                    residue_value_before = a.get_value(residue)
+                    old_adv = copy(a.adv)
+                    a.fractalize_preferences(residue.intervals)
+                    assert a.adv != old_adv
+                    assert a.get_value(residue) == residue_value_before
+
+
 def get_random_piece(interval_count):
-    nums =  sorted([Fraction(random()) for i in range(interval_count*2)])
+    nums =  sorted([Fraction(random.random()) for i in range(interval_count*2)])
     intervals = []
     for i in range(0,interval_count*2,2):
         intervals.append(Interval(nums[i], nums[i+1]))

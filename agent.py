@@ -226,6 +226,53 @@ class Agent:
 
         return pieces
 
+    def fractalize_preferences(self, residue_intervals, subdivisions=10, preference_function=myrandom):
+        fixed_points = list(self.adv.keys())
+        for key in self.cached_values:
+            for interval in key:
+                fixed_points.append( interval.left )
+                fixed_points.append( interval.right )
+        fixed_points = sorted(list(set(fixed_points)))
+        intervals = [piece_mod.Interval(fixed_points[i], fixed_points[i+1]) for i in range(0, len(fixed_points)-1)]
+        intervals = list(filter(lambda i: any([i.overlaps(r_i) for r_i in residue_intervals]), intervals))
+
+        new_keys = {}
+        i = 0
+        for x in self.adv.keys():
+            pref_height = self.adv[x]
+
+            while intervals[i].left < x:
+                pref_width = intervals[i].right - intervals[i].left
+                pref_area = pref_height * pref_width
+                new_pref_width = pref_width / Fraction(subdivisions)
+                accumulated_area = 0
+                for i2 in range( 1, subdivisions+1):
+
+                    x2 = intervals[i].left + i2 * new_pref_width
+                    new_pref_height = Fraction(preference_function(x2))
+                    new_pref_area = new_pref_height * new_pref_width
+                    accumulated_area += new_pref_area
+                    new_keys[x2] =  new_pref_height # TODO talk with David because weird function stuff ???
+                #Now scale the intervals
+                
+                factor = pref_area / accumulated_area
+                accumulated_area = 0
+                for i2 in range( 1, subdivisions+1):
+                    x2 = intervals[i].left + i2 * new_pref_width
+                    new_keys[x2] *= factor
+                    accumulated_area += new_keys[x2] * new_pref_width
+                # Certify that the area under the curve is the same as before
+                assert accumulated_area == pref_area
+
+                i += 1
+                if i >= len(intervals):
+                    break
+
+            if i >= len(intervals):
+                break
+
+        self.adv.update(new_keys)
+
     '''
     Output the agent's preference function into a string that can be imported as well
     '''

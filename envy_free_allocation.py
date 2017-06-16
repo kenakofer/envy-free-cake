@@ -24,16 +24,8 @@ def get_envy_free_allocation(agents, piece):
             p.allocated.allocated_piece += p
 
         # Check if residue is None. If so, return envy free allocation! Also return if the residue is full of empty intervals
-        if residue == None:
+        if Piece.is_empty(residue):
             return allocated_pieces
-        else:
-            empty = True
-            for i in residue.intervals:
-                if i.left != i.right:
-                    empty = False
-                    break
-            if empty:
-                return allocated_pieces
 
         dominating_set = Agent.get_dominating_set(agents, allocated_pieces, residue)
         if dominating_set != None:

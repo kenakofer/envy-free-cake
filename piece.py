@@ -1,6 +1,7 @@
 from fractions import Fraction
 import random
 from copy import copy
+from debug import *
 
 class Piece:
 
@@ -124,6 +125,9 @@ class Interval:
         self.right = right
         assert type(self.left) == Fraction
         assert type(self.right) == Fraction
+
+    def overlap(self, other):
+        return self.left < other.right and self.right < other.left
 
     def __repr__(self):
         return '['+str(float(self.left))[:5]+', '+str(float(self.right))[:5]+']'

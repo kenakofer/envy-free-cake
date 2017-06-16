@@ -2,6 +2,8 @@ import piece as piece_mod #To avoid name clashes
 from fractions import Fraction
 import random
 from copy import copy
+from itertools import combinations
+from debug import *
 
 class Agent:
 
@@ -41,12 +43,14 @@ class Agent:
 
     def myrandom(x):
         return random.random()
+
+
     '''
     Creates preference functions for valuing and trimming cake, which can appoximate any function of one argument 0 <= x <= 1.
     division_count gives the number of homogeneous segments to divide the cake into. A larger number better approximates the
     function. The default function to use is a wrapper of random.random() that takes x
     '''
-    def generate_preference_functions_from_function(self, division_count, preference_function):
+    def set_adv_from_function(self, division_count, preference_function):
         division_values = {}
         #Generated evenly spaced values outputted from the function (random by default)
         for i in range(1,division_count+1):
@@ -55,96 +59,87 @@ class Agent:
         s = sum([ division_values[k] for k in division_values])
         factor = division_count / s
         #Adjusted Division Values
-        adv = {k: division_values[k]*factor for k in division_values}
-        return self.generate_preference_functions_from_adv(adv)
-    
-    def generate_preference_functions_from_adv(self, adv):
-        #Check that the adjusted division values indeed add to the number of divisions
-        count = 0
-        for k in adv:
-            count += adv[k]
-        assert count == len(adv)
-        self.adv = adv
-        keys = list(adv.keys())
+        self.adv = {k: division_values[k]*factor for k in division_values}
+
+    def value_up_to(self, x):
+        assert type(x) == Fraction
+        acc_value = Fraction(0)
+        keys = list(self.adv.keys())
+        keys.sort()
+        for i in range(len(keys)):
+            if x >= keys[i]:
+                if i==0:
+                    acc_value += self.adv[keys[i]] * keys[i]
+                else:
+                    acc_value += self.adv[keys[i]] * (keys[i]-keys[i-1])
+            else:
+                if i==0:
+                    acc_value += self.adv[keys[i]] * x
+                else:
+                    acc_value += self.adv[keys[i]] * (x-keys[i-1])
+                break
+        assert type(acc_value) == Fraction
+        return acc_value
+
+    '''
+    Given a slice and a value, the agent must be able to determine where to trim the slice so that it is worth the value. Returns the trim and does not add it to the piece
+    '''
+    def get_trim_of_value(self, piece, desired_value, count=True):
+        assert type(desired_value) == Fraction
+        assert sorted(piece.intervals) == piece.intervals
+
+        keys = list(self.adv.keys())
         keys.sort()
 
-        def value_up_to(x):
-            assert type(x) == Fraction
-            acc_value = Fraction(0)
-            for i in range(len(keys)):
-                if x >= keys[i]:
-                    if i==0:
-                        acc_value += adv[keys[i]] * keys[i]
+        # TODO should we always increment trim_count?
+        if count: self.trim_count += 1
+
+        if len(piece.trims) > 0:
+            return self.get_trim_of_value(piece.get_after_rightmost_trim(), desired_value, count=False)
+
+        acc_value = Fraction(0)
+        trim_at = Fraction(0)
+        #target_value is the amount to trim OFF of the piece after the rightmost trim
+        # We agreed that if we incremented trim_count, the get_value should not count
+        target_value = self.get_value(piece, count=False) - desired_value
+        if target_value < 0:
+            return None
+        for interval in piece.intervals:
+            value_of_interval = self.value_up_to(interval.right) - self.value_up_to(interval.left)
+
+            if acc_value + value_of_interval < target_value:
+                acc_value += value_of_interval
+            elif acc_value + value_of_interval > target_value:
+                #Start using preference divisions
+                if trim_at == 0:
+                    trim_at = interval.left
+
+                for k in filter( lambda k: trim_at < k, keys ):
+                    if self.value_up_to(k) - self.value_up_to(trim_at) + acc_value <= target_value:
+                        acc_value += self.value_up_to(k) - self.value_up_to(trim_at)
+                        trim_at = k
                     else:
-                        acc_value += adv[keys[i]] * (keys[i]-keys[i-1])
-                else:
-                    if i==0:
-                        acc_value += adv[keys[i]] * x
-                    else:
-                        acc_value += adv[keys[i]] * (x-keys[i-1])
-                    break
-            assert type(acc_value) == Fraction
-            return acc_value
+                        trim_at += (target_value - acc_value) / self.adv[k]
+                        break
+                break
 
-        '''
-        Given a slice and a value, the agent must be able to determine where to trim the slice so that it is worth the value. Returns the trim and does not add it to the piece
-        '''
-        def get_trim_of_value(piece, desired_value, count=True):
-            assert type(desired_value) == Fraction
-            assert sorted(piece.intervals) == piece.intervals
+            #elif acc_value == target_value:
+            else:
+                trim_at = interval.right
+                break
 
-            # TODO should we always increment trim_count?
-            if count: self.trim_count += 1
+        #Because this trim may not be added to the piece, hash the value of a copied piece
+        new_piece = copy(piece)
+        new_piece.trims = [piece_mod.Trim(self, trim_at)]
+        self.cached_values[new_piece.hash_info()] = desired_value
 
-            if len(piece.trims) > 0:
-                return get_trim_of_value(piece.get_after_rightmost_trim(), desired_value, count=False)
-
-            acc_value = Fraction(0)
-            trim_at = Fraction(0)
-            #target_value is the amount to trim OFF of the piece after the rightmost trim
-            # TODO should we count these get_value calls?
-            # We agreed that if we incremented trim_count, the get_value should not count
-            target_value = self.get_value(piece, count=False) - desired_value
-            if target_value < 0:
-                return None
-            for interval in piece.intervals:
-                value_of_interval = value_up_to(interval.right) - value_up_to(interval.left)
-
-                if acc_value + value_of_interval < target_value:
-                    acc_value += value_of_interval
-                elif acc_value + value_of_interval > target_value:
-                    #Start using preference divisions
-                    if trim_at == 0:
-                        trim_at = interval.left
-
-                    for k in filter( lambda k: trim_at < k, keys ):
-                        if value_up_to(k) - value_up_to(trim_at) + acc_value <= target_value:
-                            acc_value += value_up_to(k) - value_up_to(trim_at)
-                            trim_at = k
-                        else:
-                            trim_at += (target_value - acc_value) / adv[k]
-                            break
-                    break
-
-                #elif acc_value == target_value:
-                else:
-                    trim_at = interval.right
-                    break
-
-            #Because this trim may not be added to the piece, hash the value of a copied piece
-            new_piece = copy(piece)
-            new_piece.trims = [piece_mod.Trim(self, trim_at)]
-            self.cached_values[new_piece.hash_info()] = desired_value
-
-            return piece_mod.Trim(self, trim_at)
-
-        return value_up_to, get_trim_of_value
+        return piece_mod.Trim(self, trim_at)
 
     '''
     When created, all an agent has is a function for valuing different slices of cake
     '''
     def __init__(self, division_count = 10, preference_function=myrandom):
-        self.value_up_to, self.get_trim_of_value = self.generate_preference_functions_from_function(division_count, preference_function)
+        self.set_adv_from_function(division_count, preference_function)
         self.name = 'Agent '+str(random.randint(10000,99999))
         self.trim_count = 0
         self.value_count = 0
@@ -231,7 +226,6 @@ class Agent:
 
         return pieces
 
-
     '''
     Output the agent's preference function into a string that can be imported as well
     '''
@@ -257,4 +251,3 @@ class Agent:
             self.adv[x] = Fraction(num, den)
         assert x == Fraction(1,1)
         assert sum([self.adv[k] for k in self.adv]) == len(fraction_string_list)
-        self.value_up_to, self.get_trim_of_value = self.generate_preference_functions_from_adv(self.adv)

@@ -1,4 +1,5 @@
-from classes import *
+from agent import *
+from piece import *
 from core import *
 from random import randint
 

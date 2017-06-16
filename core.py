@@ -1,4 +1,5 @@
-from classes import *
+from agent import *
+from piece import *
 from subcore import *
 from debug import *
 

@@ -2,6 +2,7 @@ import unittest
 from agent import *
 from piece import *
 from random import *
+from debug import *
 
 class AgentTests(unittest.TestCase):
     def test_goes_to_1(self):
@@ -15,6 +16,7 @@ class AgentTests(unittest.TestCase):
         for v in test_values:
             a = Agent()
             p = Piece.get_whole_piece()
+            assert type(v) == Fraction
             t = a.get_trim_of_value(p, v)
             p.trims.append(t)
             self.assertTrue(a.get_value(p) == v)

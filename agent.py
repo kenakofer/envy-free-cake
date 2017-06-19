@@ -282,21 +282,39 @@ class Agent:
         string = ""
         for k in sorted(self.adv.keys()):
             f = self.adv[k]
-            string += str(f.numerator) + ' ' + str(f.denominator) + ', '
+            string += str(k.numerator) + ' ' + str(k.denominator) +': ' + str(f.numerator) + ' ' + str(f.denominator) + ', '
         return string[:-2] #Remove last comma and space
 
     '''
     Import a preference string of the form of that which was outputted
     '''
     def set_preferences(self, preference_string):
-        fraction_string_list = preference_string.split(',')
-        self.adv = {}
-        interval = Fraction(1, len(fraction_string_list))
-        x = Fraction(0)
-        for f_s in fraction_string_list:
-            x += interval
-            num = int(f_s.split()[0])
-            den = int(f_s.split()[1])
-            self.adv[x] = Fraction(num, den)
-        assert x == Fraction(1,1)
-        assert sum([self.adv[k] for k in self.adv]) == len(fraction_string_list)
+        if ':' not in preference_string:
+            #This is the old style of recording preferences, where they are evenly spaced
+            fraction_string_list = preference_string.split(',')
+            self.adv = {}
+            interval = Fraction(1, len(fraction_string_list))
+            x = Fraction(0)
+            for f_s in fraction_string_list:
+                x += interval
+                num = int(f_s.split()[0])
+                den = int(f_s.split()[1])
+                self.adv[x] = Fraction(num, den)
+            assert x == Fraction(1,1)
+            assert sum([self.adv[k] for k in self.adv]) == len(fraction_string_list)
+        else:
+            fraction_string_list = preference_string.split(',')
+            self.adv = {}
+            for f_s in fraction_string_list:
+                k,v = f_s.split(': ')
+                k_num, k_den = map(int, k.split())
+                v_num, v_den = map(int, v.split())
+                self.adv[Fraction(k_num, k_den)] = Fraction(v_num, v_den)
+            acc_value = Fraction(0)
+            keys = sorted(list(self.adv.keys()))
+            for i in range(len(keys)):
+                width = keys[i] if i == 0 else keys[i] - keys[i-1]
+                acc_value += width * self.adv[keys[i]]
+            assert acc_value == 1
+
+

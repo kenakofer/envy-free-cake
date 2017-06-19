@@ -16,7 +16,7 @@ class Agent:
             a1.dominations = set([])
             for a2 in agents:
                 #Test if a1 dominates a2
-                dominates = a1.get_value(a1.piece) >= a1.get_value(a2.piece) + a1.get_value(residue)
+                dominates = a1.get_value(a1.piece, count=False) >= a1.get_value(a2.piece, count=False) + a1.get_value(residue, count=False)
                 if dominates:
                     a1.dominations.add(a2)
 
@@ -219,25 +219,35 @@ class Agent:
 
         return pieces
 
-    def fractalize_preferences(self, residue_intervals, subdivisions=10, preference_function=myrandom):
+    def fractalize_preferences(self, residue_intervals, subdivisions=2, preference_function=myrandom):
+        #Place fixed points at previous preference sections
         fixed_points = list(self.adv.keys())
         fixed_points.append(Fraction(0))
+        # Place fixed points at all cached value intervals
         for key in self.cached_values:
             for interval in key:
                 fixed_points.append( interval.left )
                 fixed_points.append( interval.right )
+        # Place fixed points at all residue intervals
+        for interval in residue_intervals:
+            fixed_points.append( interval.left )
+            fixed_points.append( interval.right )
         fixed_points = sorted(list(set(fixed_points)))
         intervals = [piece_mod.Interval(fixed_points[i], fixed_points[i+1]) for i in range(0, len(fixed_points)-1)]
         intervals = list(filter(lambda i: any([i.overlaps(r_i) for r_i in residue_intervals]), intervals))
         #No two intervals overlap:
         assert all([not intervals[i1].overlaps(intervals[i2]) for i1 in range(len(intervals)) for i2 in range(i1+1, len(intervals))])
+        assert self.value_up_to(Fraction(1)) == 1
+        print("splitting", len(intervals), 'intervals into', len(intervals)*subdivisions, 'intervals')
+        #print(intervals)
 
         i = 0
-        for x in list(self.adv.keys())[:]:
+        for x in sorted(list(self.adv.keys()))[:]:
             pref_height = self.adv[x]
             while intervals[i].left < x:
+                #print(intervals[i])
                 # Reset the right side of the larger preference intervals to the left side of what we're fractalizing
-                if intervals[i].left > 0 and (i==0 or intervals[i-1].right < intervals[i].left):
+                if intervals[i].left > 0 and (i==0 or intervals[i-1].right < intervals[i].left) and not intervals[i].left in self.adv:
                     self.adv[intervals[i].left] = pref_height
                 pref_width = intervals[i].right - intervals[i].left
                 pref_area = pref_height * pref_width

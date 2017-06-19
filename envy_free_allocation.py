@@ -27,13 +27,18 @@ def get_envy_free_allocation(agents, piece):
         if Piece.is_empty(residue):
             return allocated_pieces
 
+        # See if we can reduce the number of players using a dominating set
         dominating_set = Agent.get_dominating_set(agents, allocated_pieces, residue)
         if dominating_set != None:
             dominated = list(dominating_set[1])
             agents = dominated
 
+        #Fractalize the player preferences
+        for a in agents:
+            a.fractalize_preferences(residue.intervals)
+
 if __name__ == '__main__':
-    for i in range(10):
+    for i in range(6):
         print()
         print(i)
         agents = [Agent() for i in range(6)]

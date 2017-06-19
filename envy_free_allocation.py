@@ -3,7 +3,8 @@ from piece import *
 from core import *
 from debug import *
 
-def get_envy_free_allocation(agents, piece):
+def get_envy_free_allocation(agents, piece, get_call_number=False):
+    agents = agents[:]
     for a in agents:
         a.allocated_piece = Piece([])
         a.allocated_piece.allocated = a
@@ -25,7 +26,7 @@ def get_envy_free_allocation(agents, piece):
 
         # Check if residue is None. If so, return envy free allocation! Also return if the residue is full of empty intervals
         if Piece.is_empty(residue):
-            return allocated_pieces
+            return i+1 if get_call_number else allocated_pieces
 
         # See if we can reduce the number of players using a dominating set
         dominating_set = Agent.get_dominating_set(agents, allocated_pieces, residue)

@@ -219,7 +219,7 @@ class Agent:
 
         return pieces
 
-    def fractalize_preferences(self, residue_intervals, subdivisions=2, preference_function=myrandom):
+    def fractalize_preferences(self, residue_intervals, subdivisions=2, subdivide_if_below=20, preference_function=myrandom):
         #Place fixed points at previous preference sections
         fixed_points = list(self.adv.keys())
         fixed_points.append(Fraction(0))
@@ -238,7 +238,9 @@ class Agent:
         #No two intervals overlap:
         assert all([not intervals[i1].overlaps(intervals[i2]) for i1 in range(len(intervals)) for i2 in range(i1+1, len(intervals))])
         assert self.value_up_to(Fraction(1)) == 1
-        print("splitting", len(intervals), 'intervals into', len(intervals)*subdivisions, 'intervals')
+        #print("splitting", len(intervals), 'intervals into', len(intervals)*subdivisions, 'intervals')
+        if len(intervals) >= subdivide_if_below:
+            return
         #print(intervals)
 
         i = 0

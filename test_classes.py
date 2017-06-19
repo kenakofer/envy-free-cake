@@ -79,6 +79,26 @@ class AgentTests(unittest.TestCase):
                     assert a.adv != old_adv
                     self.assertEqual(a.value_up_to(Fraction(1)), 1)
 
+    def test_fractalization_correctness(self):
+        for n in range(4,6):
+            agents = [Agent(random.randint(5,23)) for i in range(n)]
+            pieces = core(agents[0], agents, Piece.get_whole_piece())
+            residue = Piece.extract_residue_from_pieces(pieces)
+            if not Piece.is_empty(residue):
+                for a in agents:
+                    residue_value_before = a.get_value(residue)
+                    old_adv = copy(a.adv)
+                    self.assertEqual(a.value_up_to(Fraction(1)), 1)
+                    a.fractalize_preferences(residue.intervals)
+                    assert a.adv != old_adv
+                    self.assertEqual(a.value_up_to(Fraction(1)), 1)
+                #Run core again and make sure pieces are the same
+                #Clear caches of agents
+                for a in agents:
+                    a.cached_values={}
+                new_pieces = core(agents[0], agents, Piece.get_whole_piece())
+                self.assertEqual( [(p.hash_info(), p.allocated) for p in new_pieces], [(p.hash_info(), p.allocated) for p in pieces] )
+
 
 def get_random_piece(interval_count):
     nums =  sorted([Fraction(random.random()) for i in range(interval_count*2)])

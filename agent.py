@@ -100,7 +100,7 @@ class Agent:
         for interval in piece.intervals:
             value_of_interval = self.value_up_to(interval.right) - self.value_up_to(interval.left)
 
-            if acc_value + value_of_interval < target_value:
+            if acc_value + value_of_interval <= target_value:
                 acc_value += value_of_interval
             elif acc_value + value_of_interval > target_value:
                 #Start using preference divisions
@@ -117,9 +117,9 @@ class Agent:
                 break
 
             #elif acc_value == target_value:
-            else:
-                trim_at = interval.right
-                break
+            #else:
+            #    trim_at = interval.right
+            #    break
 
         #Because this trim may not be added to the piece, hash the value of a copied piece
         new_piece = copy(piece)

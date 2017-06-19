@@ -66,18 +66,18 @@ class AgentTests(unittest.TestCase):
             assert a2.get_value(p) == first_value
 
     def test_preference_fractalization(self):
-        for n in range(2,6):
+        for n in range(4,6):
             agents = [Agent(random.randint(5,23)) for i in range(n)]
             pieces = core(agents[0], agents, Piece.get_whole_piece())
-            self.assertTrue( True )
             residue = Piece.extract_residue_from_pieces(pieces)
             if not Piece.is_empty(residue):
                 for a in agents:
                     residue_value_before = a.get_value(residue)
                     old_adv = copy(a.adv)
+                    self.assertEqual(a.value_up_to(Fraction(1)), 1)
                     a.fractalize_preferences(residue.intervals)
                     assert a.adv != old_adv
-                    assert a.get_value(residue) == residue_value_before
+                    self.assertEqual(a.value_up_to(Fraction(1)), 1)
 
 
 def get_random_piece(interval_count):

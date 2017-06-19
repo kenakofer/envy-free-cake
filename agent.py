@@ -64,19 +64,12 @@ class Agent:
     def value_up_to(self, x):
         assert type(x) == Fraction
         acc_value = Fraction(0)
-        keys = list(self.adv.keys())
-        keys.sort()
+        keys = sorted(list(self.adv.keys()))
         for i in range(len(keys)):
-            if x >= keys[i]:
-                if i==0:
-                    acc_value += self.adv[keys[i]] * keys[i]
-                else:
-                    acc_value += self.adv[keys[i]] * (keys[i]-keys[i-1])
-            else:
-                if i==0:
-                    acc_value += self.adv[keys[i]] * x
-                else:
-                    acc_value += self.adv[keys[i]] * (x-keys[i-1])
+            left = 0 if i==0 else keys[i-1]
+            right = x if x<keys[i] else keys[i]
+            acc_value += self.adv[keys[i]] * (right - left)
+            if right == x:
                 break
         assert type(acc_value) == Fraction
         return acc_value
@@ -228,6 +221,7 @@ class Agent:
 
     def fractalize_preferences(self, residue_intervals, subdivisions=10, preference_function=myrandom):
         fixed_points = list(self.adv.keys())
+        fixed_points.append(Fraction(0))
         for key in self.cached_values:
             for interval in key:
                 fixed_points.append( interval.left )
@@ -235,43 +229,41 @@ class Agent:
         fixed_points = sorted(list(set(fixed_points)))
         intervals = [piece_mod.Interval(fixed_points[i], fixed_points[i+1]) for i in range(0, len(fixed_points)-1)]
         intervals = list(filter(lambda i: any([i.overlaps(r_i) for r_i in residue_intervals]), intervals))
+        #No two intervals overlap:
+        assert all([not intervals[i1].overlaps(intervals[i2]) for i1 in range(len(intervals)) for i2 in range(i1+1, len(intervals))])
 
-        new_keys = {}
         i = 0
-        for x in self.adv.keys():
+        for x in list(self.adv.keys())[:]:
             pref_height = self.adv[x]
-
             while intervals[i].left < x:
+                # Reset the right side of the larger preference intervals to the left side of what we're fractalizing
+                if intervals[i].left > 0 and (i==0 or intervals[i-1].right < intervals[i].left):
+                    self.adv[intervals[i].left] = pref_height
                 pref_width = intervals[i].right - intervals[i].left
                 pref_area = pref_height * pref_width
                 new_pref_width = pref_width / Fraction(subdivisions)
-                accumulated_area = 0
+                accumulated_area = Fraction(0)
                 for i2 in range( 1, subdivisions+1):
-
                     x2 = intervals[i].left + i2 * new_pref_width
                     new_pref_height = Fraction(preference_function(x2))
-                    new_pref_area = new_pref_height * new_pref_width
-                    accumulated_area += new_pref_area
-                    new_keys[x2] =  new_pref_height # TODO talk with David because weird function stuff ???
+                    accumulated_area += new_pref_height * new_pref_width
+                    self.adv[x2] = new_pref_height
+
                 #Now scale the intervals
-                
                 factor = pref_area / accumulated_area
-                accumulated_area = 0
+                accumulated_area = Fraction(0)
                 for i2 in range( 1, subdivisions+1):
                     x2 = intervals[i].left + i2 * new_pref_width
-                    new_keys[x2] *= factor
-                    accumulated_area += new_keys[x2] * new_pref_width
-                # Certify that the area under the curve is the same as before
-                assert accumulated_area == pref_area
+                    self.adv[x2] *= factor
+                    accumulated_area += self.adv[x2] * new_pref_width
 
                 i += 1
                 if i >= len(intervals):
-                    break
+                    assert self.value_up_to(Fraction(1)) == 1
+                    return
 
             if i >= len(intervals):
-                break
-
-        self.adv.update(new_keys)
+                return
 
     '''
     Output the agent's preference function into a string that can be imported as well

@@ -40,22 +40,6 @@ class AgentTests(unittest.TestCase):
             value_count = sum([a.value_count for a in agents])
             #print("sum:",trim_count+value_count)
             #self.assertTrue( value_count + trim_count <= worst_cases_for_n_players[n] )
-
-    def test_problem_scenarios(self):
-        with open('./problem_scenario', 'r') as f:
-            for line in f.readlines():
-                agent_strings = line.split(';')
-                agents = [Agent() for i in range(len(agent_strings))]
-                for i in range(len(agent_strings)):
-                    agents[i].set_preferences(agent_strings[i])
-                info_line = ''
-                for a in agents:
-                    info_line += a.get_preference_string() + '; '
-                assert info_line[:-2].strip() == line.strip()
-                core(agents[0], agents, Piece.get_whole_piece())
-                trim_count = sum([a.trim_count for a in agents])
-                value_count = sum([a.value_count for a in agents])
-
     
     def test_preference_powers(self):
         for i in range(5):

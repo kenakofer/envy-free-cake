@@ -80,6 +80,7 @@ class Agent:
     def get_trim_of_value(self, piece, desired_value, count=True):
         assert type(desired_value) == Fraction
         assert sorted(piece.intervals) == piece.intervals
+        assert desired_value >= 0
 
         keys = list(self.adv.keys())
         keys.sort()
@@ -97,22 +98,28 @@ class Agent:
         target_value = self.get_value(piece, count=False) - desired_value
         if target_value < 0:
             return None
+        if len(piece.intervals) == 0:
+            raise Exception("We've got some problems here...")
         for interval in piece.intervals:
             value_of_interval = self.value_up_to(interval.right) - self.value_up_to(interval.left)
 
             if acc_value + value_of_interval <= target_value:
                 acc_value += value_of_interval
+                trim_at = interval.right
             elif acc_value + value_of_interval > target_value:
                 #Start using preference divisions
-                if trim_at == 0:
-                    trim_at = interval.left
+                #if trim_at == 0:
+                trim_at = interval.left
 
-                for k in filter( lambda k: trim_at < k, keys ):
+                for k in filter( lambda k: interval.left < k, keys ):
+                    #assert interval.left <= k <= interval.right
                     if self.value_up_to(k) - self.value_up_to(trim_at) + acc_value <= target_value:
                         acc_value += self.value_up_to(k) - self.value_up_to(trim_at)
                         trim_at = k
+                        assert interval.left <= trim_at <= interval.right
                     else:
                         trim_at += (target_value - acc_value) / self.adv[k]
+                        assert interval.left <= trim_at <= interval.right
                         break
                 break
 
@@ -122,6 +129,7 @@ class Agent:
             #    break
 
         #Because this trim may not be added to the piece, hash the value of a copied piece
+        assert any( [i.left <= trim_at <= i.right for i in piece.intervals] )
         new_piece = copy(piece)
         new_piece.trims = [piece_mod.Trim(self, trim_at)]
         self.cached_values[new_piece.hash_info()] = desired_value

@@ -3,16 +3,17 @@ from piece import *
 from core import *
 from debug import *
 
-def get_envy_free_allocation(agents, piece, get_call_number=False):
+def get_envy_free_allocation(agents, piece, get_call_number=False, fractalize=True):
     agents = agents[:]
     for a in agents:
         a.allocated_piece = Piece([])
         a.allocated_piece.allocated = a
+        #a.cached_values = {}
 
     allocated_pieces = [a.allocated_piece for a in agents]
     residue = piece
     for i in range(100):
-        print(' ',i,' Agent count:',len(agents))
+        debug_print(' ',i,' Agent count:',len(agents))
         cutter = agents[ i % len(agents) ]
         other_agents = [a for a in agents if a != cutter]
 
@@ -35,8 +36,9 @@ def get_envy_free_allocation(agents, piece, get_call_number=False):
             agents = dominated
 
         #Fractalize the player preferences
-        for a in agents:
-            a.fractalize_preferences(residue.intervals)
+        if fractalize:
+            for a in agents:
+                a.fractalize_preferences(residue.intervals)
 
 if __name__ == '__main__':
     for i in range(6):

@@ -132,6 +132,7 @@ class Interval:
     def __init__(self, left, right):
         self.left = left
         self.right = right
+        assert left <= right
         assert type(self.left) == Fraction
         assert type(self.right) == Fraction
 

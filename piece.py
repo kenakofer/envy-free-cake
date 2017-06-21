@@ -76,7 +76,7 @@ class Piece:
         trim = None
         #Get the latest trim with the greatest x.
         for t in self.trims:
-            if trim == None or t.x >= trim.x:
+            if trim == None or t.x > trim.x:
                 trim = t
         return trim
 

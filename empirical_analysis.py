@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 from agent import *
 from piece import *
 from core import *
@@ -83,9 +84,10 @@ def core_best_case(player_number_list):
             write_core_scenario_to_file(agents)
             #print("sum:",trim_count+value_count)
 
-def genetic_find_worst_envy_free_case(agent_number, population_size=9, cull_number=6):
+def genetic_find_worst_envy_free_case(population, cull_number=-1, epsilon_change=-1):
     #Create population. Each member of the population is a group of agents
-    population = [[Agent(division_count=50) for i in range(agent_number)] for n in range(population_size)]
+    if cull_number < 0:
+        cull_number = len(population) * 2 // 3
     #Evaluate fitness based on number of core runs required
     while True:
         fitness = {}
@@ -102,19 +104,23 @@ def genetic_find_worst_envy_free_case(agent_number, population_size=9, cull_numb
         #Reproduce to make the next generation
         #Turn fit_list into a simple list of lists of agents
         fit_list = [p[0] for p in fit_list]
+        ascii_visualize_agent_adv(fit_list[-1], 30)
         next_gen = fit_list[:]
         for p in fit_list + fit_list:
-            next_gen.append(variate_agent_preferences(p))
+            next_gen.append(variate_agent_preferences(p, epsilon_change=epsilon_change))
         population = next_gen
 
 
-def variate_agent_preferences(agents, mutation_frequency=.1, variation_amount=.2):
+def variate_agent_preferences(agents, mutation_frequency=.1, variation_amount=.2, epsilon_change=-1):
     new_agents = []
     advs = [copy(a.adv) for a in agents]
     for adv in advs:
         for k in adv:
             if random.random() < mutation_frequency:
-                adv[k] = max(0, adv[k] + Fraction((random.random()*2 - 1) * variation_amount))
+                if epsilon_change > 0:
+                    adv[k] += random.randint(-1,1) * epsilon_change
+                else:
+                    adv[k] = max(0, adv[k] + Fraction((random.random()*2 - 1) * variation_amount))
         s = sum([ adv[k] for k in adv])
         factor = Fraction(len(adv), s)
         #Adjusted Division Values
@@ -124,8 +130,37 @@ def variate_agent_preferences(agents, mutation_frequency=.1, variation_amount=.2
         new_agents.append(new_agent)
     return new_agents
 
+def get_agents_partitioned_preferences(number, division_count=48):
+    agents = [Agent(division_count=division_count) for i in range(number)]
+    indices_remaining = set(range(division_count))
+    for a in agents:
+        indices = set(random.sample(indices_remaining, division_count // number))
+        indices_remaining -= indices
+        for i in range(len(a.adv)):
+            a.adv[i] = Fraction(random.random()) if i in indices else 0
+    return agents
+
+'''
+This only works if agents have the same k values
+'''
+def ascii_visualize_agent_adv(agents, bar_width):
+    for k in sorted(list(agents[0].adv.keys())):
+        string=""
+        for a in agents:
+            string+='|'
+            v = a.adv[k]
+            string += " "*int(v*9)
+            string += ']'
+            string += ' '*(bar_width - 1 - int(v*9))
+        print(string)
+
+
 if __name__ == '__main__':
-    genetic_find_worst_envy_free_case(4)
+    #population = [get_agents_partitioned_preferences(4, division_count=400) for i in range(9)]
+    #population = [[Agent(division_count=50, preference_function=lambda x: x) for i in range(4)] for n in range(9)]
+    #genetic_find_worst_envy_free_case(population, epsilon_change=Fraction(1, 2**16))
+    population = [[Agent(division_count=50) for i in range(4)] for n in range(9)]
+    genetic_find_worst_envy_free_case(population)
     #envy_free_random(range(4,11),100)
     #core_best_case(range(4,12))
     #core_worst_case(range(4,12))

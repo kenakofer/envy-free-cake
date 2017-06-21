@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 from agent import *
 from piece import *
 from core import *

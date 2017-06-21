@@ -74,7 +74,12 @@ class Piece:
 
     def get_rightmost_trim(self):
         trim = None
-        #Get the latest trim with the greatest x.
+        ''' 
+        Get the latest trim with the greatest x.
+        IMPORTANT: This "inverse lexicographic" tiebreaking is to avoid situations in which pieces are past 
+        into a subcall of subcore with trims, then trims are placed by the agents in the lower call which 
+        line up with those from the higher call.
+        '''
         for t in self.trims:
             if trim == None or t.x > trim.x:
                 trim = t

@@ -104,14 +104,13 @@ def genetic_find_worst_envy_free_case(population, cull_number=-1, epsilon_change
         #Reproduce to make the next generation
         #Turn fit_list into a simple list of lists of agents
         fit_list = [p[0] for p in fit_list]
-        ascii_visualize_agent_adv(fit_list[-1], 30)
         next_gen = fit_list[:]
         for p in fit_list + fit_list:
             next_gen.append(variate_agent_preferences(p, epsilon_change=epsilon_change))
         population = next_gen
 
 
-def variate_agent_preferences(agents, mutation_frequency=.1, variation_amount=.2, epsilon_change=-1):
+def variate_agent_preferences(agents, mutation_frequency=.1, variation_amount=.5, epsilon_change=-1):
     new_agents = []
     advs = [copy(a.adv) for a in agents]
     for adv in advs:
@@ -121,8 +120,14 @@ def variate_agent_preferences(agents, mutation_frequency=.1, variation_amount=.2
                     adv[k] += random.randint(-1,1) * epsilon_change
                 else:
                     adv[k] = max(0, adv[k] + Fraction((random.random()*2 - 1) * variation_amount))
-        s = sum([ adv[k] for k in adv])
-        factor = Fraction(len(adv), s)
+        keys = sorted(list(adv.keys()))
+        acc_area = Fraction(0)
+        for i in range(len(keys)):
+            left = keys[i-1] if i>0 else 0
+            right = keys[i]
+            width = Fraction(right-left)
+            acc_area += adv[keys[i]] * width
+        factor = Fraction(len(adv), acc_area)
         #Adjusted Division Values
         adv = {k: adv[k]*factor for k in adv}
         new_agent = Agent()
@@ -139,20 +144,6 @@ def get_agents_partitioned_preferences(number, division_count=48):
         for i in range(len(a.adv)):
             a.adv[i] = Fraction(random.random()) if i in indices else 0
     return agents
-
-'''
-This only works if agents have the same k values
-'''
-def ascii_visualize_agent_adv(agents, bar_width):
-    for k in sorted(list(agents[0].adv.keys())):
-        string=""
-        for a in agents:
-            string+='|'
-            v = a.adv[k]
-            string += " "*int(v*9)
-            string += ']'
-            string += ' '*(bar_width - 1 - int(v*9))
-        print(string)
 
 
 if __name__ == '__main__':

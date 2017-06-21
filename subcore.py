@@ -2,70 +2,91 @@ from agent import *
 from piece import *
 from debug import *
 
-
-'''
+'''''''''
 Returns a neat, partial, envy-free alocation of pieces of cake among the agents given
 
-Translation key for variables
-Paper -> Code
+Comment styles:
+## Comments:   Code from Aziz and Mackenzie's algorithm
+# Comments:    Disabled code
+Triple quotes: Implementation commentary
 
-a[i] -> agents[i].preferred_value
-
-
-'''
+'''''''''
 def subcore(pieces, agents, call_signature=""):
     debug_print()
     debug_print(call_signature)
     debug_print("Calling subcore with",len(pieces),"pieces and",len(agents),'agents')
 
-    #Ensure that no piece passed in was trimmed by an agent passed in
+    ## 1: Set value a_j to the value of agent j's most preferred piece
+    '''
+    We don't do this, in order to minimize the number of queries needed later on. When such values are
+    needed for the first time, they will be computed
+    '''
+
+    ## 2: Order agents lexicographically
+    ''' Our agents are stored in the list in consistent order already '''
+
+    ## 3: Ask each agent to rank the pieces
+    '''
+    We don't do this, in order to minimize the number of queries needed later on. When such values are
+    needed for the first time, they will be computed
+    Note that this changes how our code breaks ties. We break ties lexicographically, whereas the
+    Aziz and Mackenzie algorithm breaks them first based on this initial ordering, then lexicographically
+    '''
+
+    ''' Ensure that no piece passed in was trimmed by an agent passed in '''
     for p in pieces:
         for t in p.trims:
             assert t.owner not in agents
 
+    ## 4: FOR m=1 to the size of agents do:
     for m in range(1,len(agents)+1):
         debug_print("m=",m)
 
-        # If the next agent's preferred piece is unallocated
-        # IMPORTANT: This line breaks our previous upper bound for the operation of sub_core, becaus
+        ## 5: IF there is an unallocated piece which gives the agent the highest value among all the pieces:
         preferred_piece = agents[m-1].choose_piece(pieces)
         if preferred_piece.allocated == None:
+            ## 6: Tentatively give the piece to the agent, and proceed to the next iteration of the FOR loop
             preferred_piece.allocated = agents[m-1]
+        ## ELSE
         else:
-            # m-1 pieces are being contested by m agents
+            ## 7a: The first m agents are contesting for the same m-1 pieces, called the contested pieces
             contested_pieces = list(filter(lambda p: p.allocated != None, pieces))
             uncontested_pieces = list(filter(lambda p: p.allocated == None, pieces))
             assert len(uncontested_pieces) >= 1
 
+            ## 7b: Each agent in m is asked to place a trim on each contested piece so that the cake right of the trim is
+            ## equal in value to the agent's preferred uncontested piece.
             for agent in agents[:m]:
                 uncontested_max_value = max( [agent.get_value(p) for p in uncontested_pieces] )
                 debug_print(agent, "uncontested max value is",float(uncontested_max_value))
                 for piece in contested_pieces:
-                    #Because new valuations are made from the rightmost trim, don't immediately add these new trims to the piece.
+                    '''
+                    Because new valuations are made from the rightmost trim, don't immediately 
+                    add these new trims to the piece.
+                    '''
                     possible_trim =  agent.get_trim_of_value(piece, uncontested_max_value)
                     if possible_trim != None:
                         piece.pending_trims.append(possible_trim)
-
-            #TODO should this be its own method in Piece class?
-            #Now add the pending trims to the actual trims
+            ''' Now add the pending trims to the actual trims '''
             for piece in contested_pieces:
                 piece.trims.extend(piece.pending_trims)
-                #Make sure the trims are sorted by their x position
+                ''' Make sure the trims are sorted by their x position '''
                 piece.trims = sorted(piece.trims, key = lambda t: t.x)
                 piece.pending_trims = []
 
-
-            #Kenan asks why benchmarks are even necessary
-            #They don't modify the flow of code at all, but they're used in the proof
+            ## 7c: Update agent benchmarks
             '''
-            for agent in agents:
-                agent.benchmark = max( [agent.get_value(p) for p in uncontested_pieces] )
+            We don't see benchmarks as even necessary, because
+            they don't modify the flow of code at all. But they're used in the proof...
             '''
+            #for agent in agents:
+            #    agent.benchmark = max( [agent.get_value(p) for p in uncontested_pieces] )
 
+            ## 8: Set W to be the set of agents who trimmed the most on any contested piece
+            ## If multiple agents trim the most on a given piece, the first trim placed is selected
             winners = []
             for piece in contested_pieces:
                 winner = piece.rightmost_cutter()
-
                 '''
                 There might be no trims on the piece, in which case it is None
                 The rightmost trim may be from a higher call of subcore
@@ -76,20 +97,24 @@ def subcore(pieces, agents, call_signature=""):
                         winner not in winners:
                     winners.append(winner)
 
+            ## 9: While the size of W is less than m-1
             while len(winners) < m-1:
                 debug_print("BEGINNING WHILE LOOP")
 
-                # Forget allocations
-                # TODO should this go here?
+                ## 10: Ignore the previous trims of agents in W
+                ''' Forget allocations '''
                 for piece in pieces:
                     piece.allocated = None
-
-                # Forget previous trims
+                ''' Forget previous trims '''
                 for piece in contested_pieces:
                     piece.forget_trims_by_agents(winners)
 
+                ## 11: Run SubCore on the contested pieces with W as the target set of agents, and the contested pieces only
+                ## considered after the loser's trims
                 subcore(contested_pieces, winners, call_signature = call_signature+' m'+str(m)+'w')
 
+                ## 12: Take any unallocated contested piece a. Now the rightmost trim on that piece is by a loser agent.
+                ## Give that piece to that agent.
                 unallocated_contested_piece = list(filter(lambda p: p.allocated == None, contested_pieces)) [0]
                 new_winner = unallocated_contested_piece.rightmost_cutter()
                 
@@ -100,39 +125,47 @@ def subcore(pieces, agents, call_signature=""):
                 assert new_winner in agents[:m]
                 unallocated_contested_piece.allocated = new_winner
                 winners.append( new_winner )
-            #END WHILE
+            ## 13: END WHILE
 
-            # Forget previous trims
+            ## 14: Run subcore on all agents in W and the contested pieces only
+            ## considered after the loser's trims. After this, |W| = m-1 and each winner has a piece
+            ## allocated to them
             for piece in contested_pieces:
                 piece.forget_trims_by_agents(winners)
                 piece.allocated = None
-
             subcore(contested_pieces, winners, call_signature = call_signature+' m'+str(m))
             
+            ''' There should be exactly one loser. '''
             losers = list(set(agents[:m]) - set(winners))
-            
-            ## There should be exactly one loser. If not, we have some debugging to do
             if len(losers) != 1:
                 print("Winners are:",winners)
                 print("Losers  are:",losers)
                 print("Agents[:m] :",agents[:m])
                 assert False
 
+            ## 15: The only loser remaining is allocated their most preferred uncontested piece
             loser = losers[0]
-            
             preferred_uncontested_piece = loser.choose_piece(uncontested_pieces)
             preferred_uncontested_piece.allocated = loser
-        # END IF/ELSE
-    #END FOR
-    
-    #These assertions cache values that would otherwise not be cached. Be sure to leave this commented for accuracy in value_count
-    '''
-    assert envy_free(pieces)
-    #This next assertion about benchmarks should be implied by envy_free above, but this is useful to remember for the proof:
-    for a in agents:
-        assert a.benchmark <= a.get_value(a.choose_piece(pieces, count=False), count=False)
+        ## 16: END IF/ELSE
+        ## 17: Update a_i and update all benchmarks for all agents i in the set m, 
+    ## 18: END FOR
     
     '''
+    These assertions cache values that would otherwise not be cached. Be sure 
+    to leave this commented for accuracy in value_count
+    '''
+    #assert envy_free(pieces)
+    '''
+    This next assertion about benchmarks should be implied by envy_free above, 
+    but this is useful to remember for the proof:
+    '''
+    #for a in agents:
+    #    assert a.benchmark <= a.get_value(a.choose_piece(pieces, count=False), count=False)
+    
+    
     debug_print("Returning from subcore with",len(pieces),"pieces and",len(agents),'agents')
     debug_print()
+
+    ## 19: Return envy-free partial allocation for the agents
     return pieces

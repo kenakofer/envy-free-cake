@@ -6,5 +6,9 @@ def debug_print(*obj):
             print()
         else:
             print(' '.join(map(str, obj)))
+
+def set_debug(value):
+    global debug
+    debug=value
             
 

@@ -8,6 +8,7 @@ from copy import copy
 from time import time
 
 OUTFILE = './data_envy_free.out'
+seed = 0
 
 def write_output(string):
     with open(OUTFILE, 'a') as f:
@@ -33,8 +34,6 @@ def write_core_scenario_to_file(agents):
 
 def write_envy_free_scenario_to_file(agents):
     info_line = ""
-    seed = int(time()*1000)
-    random.seed(seed)
     try:
         core_number = get_envy_free_allocation(agents, Piece.get_whole_piece(), get_call_number=True)
     except AssertionError:
@@ -49,10 +48,13 @@ def write_envy_free_scenario_to_file(agents):
     write_output(info_line)
 
 def envy_free_random(player_number_list, count):
+    global seed
     for n in player_number_list:
         print(n,'Players')
         write_output('# Random cases for '+str(n)+' Agents')
         for i in range(count):
+            seed = int(time()*1000)
+            random.seed(seed)
             print(str(i)+'th trial for '+str(n)+' players')
             agents = [Agent(division_count=random.randint(10,20)) for i in range(n)]
             write_envy_free_scenario_to_file(agents)

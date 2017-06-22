@@ -81,7 +81,7 @@ class Piece:
         line up with those from the higher call.
         '''
         for t in self.trims:
-            if trim == None or t.x > trim.x:
+            if trim == None or t.x >= trim.x:
                 trim = t
         return trim
 

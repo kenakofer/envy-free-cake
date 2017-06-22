@@ -2,9 +2,10 @@
 from agent import *
 from piece import *
 from core import *
-from random import randint
+import random
 from envy_free_allocation import *
 from copy import copy
+from time import time
 
 OUTFILE = './data_envy_free.out'
 
@@ -32,10 +33,12 @@ def write_core_scenario_to_file(agents):
 
 def write_envy_free_scenario_to_file(agents):
     info_line = ""
+    seed = int(time()*1000)
+    random.seed(seed)
     try:
         core_number = get_envy_free_allocation(agents, Piece.get_whole_piece(), get_call_number=True)
     except AssertionError:
-        print("We hit a False Assertion! Here is the agent data to reproduce:")
+        print("We hit a False Assertion! Here is the seed to reproduce:", seed)
         print(info_line)
         raise
     for a in agents:
@@ -51,13 +54,13 @@ def envy_free_random(player_number_list, count):
         write_output('# Random cases for '+str(n)+' Agents')
         for i in range(count):
             print(str(i)+'th trial for '+str(n)+' players')
-            agents = [Agent(division_count=randint(10,20)) for i in range(n)]
+            agents = [Agent(division_count=random.randint(10,20)) for i in range(n)]
             write_envy_free_scenario_to_file(agents)
 
 def core_random(player_number_list, count):
     for n in player_number_list:
         for i in range(count):
-            agents = [Agent(division_count=randint(10,20)) for i in range(n)]
+            agents = [Agent(division_count=random.randint(10,20)) for i in range(n)]
             write_core_scenario_to_file(agents)
 
 def core_worst_case(player_number_list):

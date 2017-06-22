@@ -6,6 +6,8 @@ import random
 from core import *
 from debug import *
 from copy import copy
+from time import time
+from envy_free_allocation import *
 
 class AgentTests(unittest.TestCase):
     def test_goes_to_1(self):
@@ -107,6 +109,17 @@ def get_random_piece(interval_count):
     for i in range(0,interval_count*2,2):
         intervals.append(Interval(nums[i], nums[i+1]))
     return Piece(intervals)
+
+def test_random_seeding():
+    seed = int(time()*1000)
+    random.seed(seed)
+    agents1 = [Agent() for i in range(6)]
+    pieces1 = get_envy_free_allocation(agents1, Piece.get_whole_piece())
+    random.seed(seed)
+    agents2 = [Agent() for i in range(6)]
+    pieces2 = get_envy_free_allocation(agents2, Piece.get_whole_piece())
+    self.assertEqual([p.hash_info() for p in pieces1], [p.hash_info() for p in pieces2])
+
       
 
 

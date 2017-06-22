@@ -11,7 +11,8 @@ Comment styles:
 Triple quotes: Implementation commentary
 
 '''''''''
-def subcore(pieces, agents, call_signature=""):
+def subcore(pieces, agents, call_signature="top"):
+    set_debug_prefix(call_signature)
     debug_print()
     debug_print(call_signature)
     debug_print("Calling subcore with",len(pieces),"pieces and",len(agents),'agents')
@@ -66,6 +67,7 @@ def subcore(pieces, agents, call_signature=""):
                     '''
                     possible_trim =  agent.get_trim_of_value(piece, uncontested_max_value)
                     if possible_trim != None:
+                        possible_trim.signature = call_signature
                         piece.pending_trims.append(possible_trim)
             ''' Now add the pending trims to the actual trims '''
             for piece in contested_pieces:
@@ -112,14 +114,24 @@ def subcore(pieces, agents, call_signature=""):
                 ## 11: Run SubCore on the contested pieces with W as the target set of agents, and the contested pieces only
                 ## considered after the loser's trims
                 subcore(contested_pieces, winners, call_signature = call_signature+' m'+str(m)+'w')
+                set_debug_prefix(call_signature)
 
                 ## 12: Take any unallocated contested piece a. Now the rightmost trim on that piece is by a loser agent.
                 ## Give that piece to that agent.
-                unallocated_contested_piece = list(filter(lambda p: p.allocated == None, contested_pieces)) [0]
+                unallocated_contested_pieces = list(filter(lambda p: p.allocated == None, contested_pieces))
+                unallocated_contested_pieces.sort(key=lambda p: len(list(filter(lambda t: t.signature==call_signature, p.trims))))
+                unallocated_contested_piece = unallocated_contested_pieces[0]
+
+                debug_print("unallocated_contested_piece has trims:")
+                for t in unallocated_contested_piece.trims:
+                    debug_print(t,t.signature)
+                debug_print("unallocated_contested_piece final interval:",unallocated_contested_piece.intervals[-1])
                 new_winner = unallocated_contested_piece.rightmost_cutter()
                 
+                debug_print("The winners are:",winners)
                 debug_print("Adding new_winner:",new_winner)
                 debug_print("Agents in [:m] are",agents[:m])
+
                 assert new_winner != None
                 assert new_winner not in winners
                 assert new_winner in agents[:m]
@@ -134,6 +146,7 @@ def subcore(pieces, agents, call_signature=""):
                 piece.forget_trims_by_agents(winners)
                 piece.allocated = None
             subcore(contested_pieces, winners, call_signature = call_signature+' m'+str(m))
+            set_debug_prefix(call_signature)
             
             ''' There should be exactly one loser. '''
             losers = list(set(agents[:m]) - set(winners))
@@ -148,7 +161,7 @@ def subcore(pieces, agents, call_signature=""):
             preferred_uncontested_piece = loser.choose_piece(uncontested_pieces)
             preferred_uncontested_piece.allocated = loser
         ## 16: END IF/ELSE
-        ## 17: Update a_i and update all benchmarks for all agents i in the set m, 
+        ## 17: Update a_i and update all benchmarks for all agents i in the set m
     ## 18: END FOR
     
     '''

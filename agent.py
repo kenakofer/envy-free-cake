@@ -106,9 +106,9 @@ class Agent:
             if acc_value + value_of_interval <= target_value:
                 acc_value += value_of_interval
                 trim_at = interval.right
-            elif acc_value + value_of_interval > target_value:
-                #Start using preference divisions
-                #if trim_at == 0:
+            else:
+            # acc_value + value_of_interval > target_value:
+                ''' Start using preference divisions '''
                 trim_at = interval.left
 
                 for k in filter( lambda k: interval.left < k, keys ):
@@ -123,13 +123,8 @@ class Agent:
                         break
                 break
 
-            #elif acc_value == target_value:
-            #else:
-            #    trim_at = interval.right
-            #    break
-
-        #Because this trim may not be added to the piece, hash the value of a copied piece
         assert any( [i.left <= trim_at <= i.right for i in piece.intervals] )
+        #Because this trim may not be added to the piece, hash the value of a copied piece
         new_piece = copy(piece)
         new_piece.trims = [piece_mod.Trim(self, trim_at)]
         self.cached_values[new_piece.hash_info()] = desired_value

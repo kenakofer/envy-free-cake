@@ -150,9 +150,9 @@ if __name__ == '__main__':
     #population = [get_agents_partitioned_preferences(4, division_count=400) for i in range(9)]
     #population = [[Agent(division_count=50, preference_function=lambda x: x) for i in range(4)] for n in range(9)]
     #genetic_find_worst_envy_free_case(population, epsilon_change=Fraction(1, 2**16))
-    population = [[Agent(division_count=50) for i in range(4)] for n in range(9)]
-    genetic_find_worst_envy_free_case(population)
-    #envy_free_random(range(4,11),100)
+    #population = [[Agent(division_count=50) for i in range(4)] for n in range(9)]
+    #genetic_find_worst_envy_free_case(population)
+    envy_free_random(range(11,14),100)
     #core_best_case(range(4,12))
     #core_worst_case(range(4,12))
     #core_random(range(4,12),1000)

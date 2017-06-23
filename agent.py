@@ -24,10 +24,10 @@ class Agent:
     def get_dominating_set(agents, pieces, residue):
         Agent.get_dominations(agents, pieces, residue)
         for n in range(len(agents)-1, 0, -1):
-            possibilities = set(combinations(agents, n))
+            possibilities = combinations(agents, n)
             for possibility in possibilities:
-                dominators = set(possibility)
-                dominated = set(agents) - dominators
+                dominators = possibility
+                dominated = [a for a in agents if not a in dominators]
                 good = True
                 for d1 in dominators:
                     for d2 in dominated:

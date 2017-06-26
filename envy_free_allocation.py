@@ -6,12 +6,7 @@ from debug import *
 
 def get_envy_free_allocation(agents, piece, get_call_number=False, fractalize=True):
     agents = agents[:]
-    for a in agents:
-        a.allocated_piece = Piece([])
-        a.allocated_piece.allocated = a
-        #a.cached_values = {}
-
-    allocated_pieces = [a.allocated_piece for a in agents]
+    allocated_cake = [a.allocated_cake for a in agents]
     residue = piece
     for i in range(100):
         debug_print(' ',i,' Agent count:',len(agents))
@@ -24,14 +19,14 @@ def get_envy_free_allocation(agents, piece, get_call_number=False, fractalize=Tr
 
         ### add to player's allocations
         for p in pieces:
-            p.allocated.allocated_piece += p
+            p.allocated.allocated_cake += p
 
         # Check if residue is None. If so, return envy free allocation! Also return if the residue is full of empty intervals
         if Piece.is_empty(residue):
-            return i+1 if get_call_number else allocated_pieces
+            return i+1 if get_call_number else allocated_cake
 
         # See if we can reduce the number of players using a dominating set
-        dominating_set = Agent.get_dominating_set(agents, allocated_pieces, residue)
+        dominating_set = Agent.get_dominating_set(agents, allocated_cake, residue)
         if dominating_set != None:
             dominated = list(dominating_set[1])
             agents = dominated

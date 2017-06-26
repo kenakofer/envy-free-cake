@@ -36,3 +36,18 @@ def core(agent_to_cut, agents, piece):
     to indicate where the residue should be cut off
     '''
     return pieces
+
+def iterate_core(cutter, agents, piece):
+    pieces = core(cutter, agents, piece)
+    residue = Piece.extract_residue_from_pieces(pieces)
+
+    ''' Add to player's total allocations '''
+    for p in pieces:
+        p.allocated.allocated_cake += p
+
+    ''' Fractalize the player preferences to maintain detail in succeeding calls '''
+    if fractalize:
+        for a in agents:
+            a.fractalize_preferences(residue.intervals)
+
+    return pieces, residue

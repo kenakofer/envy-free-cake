@@ -33,6 +33,9 @@ def subcore(pieces, agents, above_ranking=None, call_signature="top"):
     We will compute the ranking for tie breaking at (5)
     '''
     current_ranking = {}
+    
+    for a in agents:
+        current_ranking[a] = a.get_ranking(pieces, above_ranking)
 
     ''' Ensure that no piece passed in was trimmed by an agent passed in '''
     for p in pieces:
@@ -43,9 +46,17 @@ def subcore(pieces, agents, above_ranking=None, call_signature="top"):
     for m in range(1,len(agents)+1):
         debug_print("m=",m)
 
+        debug_print(agents[m-1],'is choosing a piece. Their above_ranking:')
+        debug_print('',above_ranking[agents[m-1]] if above_ranking != None else 'None')
+        debug_print('Their options:')
+        for p in pieces:
+            debug_print('',p, float(agents[m-1].get_value(p, count=False)))
+
         ## 5: IF there is an unallocated piece which gives the agent the highest value among all the pieces:
         preferred_piece = agents[m-1].choose_piece(pieces, above_ranking=above_ranking)
-        current_ranking[agents[m-1]] = agents[m-1].get_ranking(pieces, above_ranking)
+        #current_ranking[agents[m-1]] = agents[m-1].get_ranking(pieces, above_ranking)
+
+        debug_print('They chose',preferred_piece)
 
         if preferred_piece.allocated == None:
             ## 6: Tentatively give the piece to the agent, and proceed to the next iteration of the FOR loop

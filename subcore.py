@@ -11,7 +11,7 @@ Comment styles:
 Triple quotes: Implementation commentary
 
 '''''''''
-def subcore(pieces, agents, call_signature="top"):
+def subcore(pieces, agents, above_ranking=None, call_signature="top"):
     set_debug_prefix(call_signature)
     debug_print()
     debug_print(call_signature)
@@ -28,11 +28,11 @@ def subcore(pieces, agents, call_signature="top"):
 
     ## 3: Ask each agent to rank the pieces
     '''
-    We don't do this, in order to minimize the number of queries needed later on. When such values are
+    We don't do this here, in order to minimize the number of queries needed later on. When such values are
     needed for the first time, they will be computed
-    Note that this changes how our code breaks ties. We break ties lexicographically, whereas the
-    Aziz and Mackenzie algorithm breaks them first based on this initial ordering, then lexicographically
+    We will compute the ranking for tie breaking at (5)
     '''
+    current_ranking = {}
 
     ''' Ensure that no piece passed in was trimmed by an agent passed in '''
     for p in pieces:
@@ -44,7 +44,9 @@ def subcore(pieces, agents, call_signature="top"):
         debug_print("m=",m)
 
         ## 5: IF there is an unallocated piece which gives the agent the highest value among all the pieces:
-        preferred_piece = agents[m-1].choose_piece(pieces)
+        preferred_piece = agents[m-1].choose_piece(pieces, above_ranking=above_ranking)
+        current_ranking[agents[m-1]] = agents[m-1].get_ranking(pieces, above_ranking)
+
         if preferred_piece.allocated == None:
             ## 6: Tentatively give the piece to the agent, and proceed to the next iteration of the FOR loop
             preferred_piece.allocated = agents[m-1]
@@ -108,21 +110,24 @@ def subcore(pieces, agents, call_signature="top"):
                 for piece in pieces:
                     piece.allocated = None
                 ''' Forget previous trims '''
+                debug_print("Before forgetting in the while loop, the winners are:",winners)
                 for piece in contested_pieces:
+                    debug_print("before forgetting in the while loop, these are the trims on",piece)
+                    for t in piece.trims:
+                        debug_print(t, t.signature)
                     piece.forget_trims_by_agents(winners)
 
                 ## 11: Run SubCore on the contested pieces with W as the target set of agents, and the contested pieces only
                 ## considered after the loser's trims
-                subcore(contested_pieces, winners, call_signature = call_signature+' m'+str(m)+'w')
+                subcore(contested_pieces, winners, above_ranking=current_ranking, call_signature=call_signature+' m'+str(m)+'w')
                 set_debug_prefix(call_signature)
 
                 ## 12: Take any unallocated contested piece a. Now the rightmost trim on that piece is by a loser agent.
                 ## Give that piece to that agent.
                 unallocated_contested_pieces = list(filter(lambda p: p.allocated == None, contested_pieces))
-                unallocated_contested_pieces.sort(key=lambda p: len(list(filter(lambda t: t.signature==call_signature, p.trims))))
                 unallocated_contested_piece = unallocated_contested_pieces[0]
 
-                debug_print("unallocated_contested_piece has trims:")
+                debug_print("unallocated_contested_piece",unallocated_contested_piece,"has trims:")
                 for t in unallocated_contested_piece.trims:
                     debug_print(t,t.signature)
                 debug_print("unallocated_contested_piece final interval:",unallocated_contested_piece.intervals[-1])
@@ -143,9 +148,12 @@ def subcore(pieces, agents, call_signature="top"):
             ## considered after the loser's trims. After this, |W| = m-1 and each winner has a piece
             ## allocated to them
             for piece in contested_pieces:
+                debug_print("before forgetting after the while loop, these are the trims on",piece)
+                for t in piece.trims:
+                    debug_print(t, t.signature)
                 piece.forget_trims_by_agents(winners)
                 piece.allocated = None
-            subcore(contested_pieces, winners, call_signature = call_signature+' m'+str(m))
+            subcore(contested_pieces, winners, above_ranking=current_ranking, call_signature=call_signature+' m'+str(m))
             set_debug_prefix(call_signature)
             
             ''' There should be exactly one loser. '''
@@ -178,6 +186,8 @@ def subcore(pieces, agents, call_signature="top"):
     
     
     debug_print("Returning from subcore with",len(pieces),"pieces and",len(agents),'agents')
+    for p in pieces:
+        debug_print("In this call,",p,'was allocated to',p.allocated)
     debug_print()
 
     ## 19: Return envy-free partial allocation for the agents

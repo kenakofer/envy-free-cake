@@ -48,7 +48,7 @@ class AgentTests(unittest.TestCase):
             a = Agent()
             #a = Agent(division_count=1, preference_function=lambda x: 1)
             assert len(a.cached_values) == 0
-            piece = get_random_piece(random.randint(1,50))
+            piece = get_random_piece(10)
             total_value = a.get_value(piece)
             pieces = a.cut_into_n_pieces_of_equal_value(n, piece)
             for p in pieces:
@@ -111,6 +111,19 @@ class AgentTests(unittest.TestCase):
         agents2 = [Agent() for i in range(6)]
         pieces2 = get_envy_free_allocation(agents2, Piece.get_whole_piece())
         self.assertEqual([p.hash_info() for p in pieces1], [p.hash_info() for p in pieces2])
+    
+    def test_choose_ranking(self):
+        for n in [5]*10:
+            a = Agent()
+            piece = get_random_piece(10)
+            total_value = a.get_value(piece)
+            pieces = a.cut_into_n_pieces_of_equal_value(n, piece)
+            ranking_order = pieces[:]
+            random.shuffle(ranking_order)
+            ranking = {a: ranking_order}
+            self.assertEqual(a.choose_piece(pieces, above_ranking=ranking), ranking[a][0])
+
+
 
 def get_random_piece(interval_count):
     nums =  sorted([Fraction(random.random()) for i in range(interval_count*2)])
@@ -119,6 +132,7 @@ def get_random_piece(interval_count):
         intervals.append(Interval(nums[i], nums[i+1]))
     return Piece(intervals)
 
+    
 
       
 

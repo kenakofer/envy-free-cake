@@ -5,6 +5,8 @@ from copy import copy
 from itertools import combinations
 from debug import *
 
+agent_counter=0
+
 class Agent:
 
     def get_dominations(agents, pieces, residue):
@@ -124,9 +126,10 @@ class Agent:
                 break
 
         assert any( [i.left <= trim_at <= i.right for i in piece.intervals] )
-        #Because this trim may not be added to the piece, hash the value of a copied piece
+        ''' Because this trim may not be added to the piece, hash the value of a copied piece '''
         new_piece = copy(piece)
         new_piece.trims = [piece_mod.Trim(self, trim_at)]
+        #assert self.get_value(new_piece, count=False) == desired_value
         self.cached_values[new_piece.hash_info()] = desired_value
 
         return piece_mod.Trim(self, trim_at)
@@ -134,39 +137,46 @@ class Agent:
     '''
     When created, all an agent has is a function for valuing different slices of cake
     '''
+
     def __init__(self, division_count = 10, preference_function=myrandom):
+        global agent_counter
         self.set_adv_from_function(division_count, preference_function)
-        self.name = 'Agent '+str(random.randint(10000,99999))
+        self.name = 'Agent '+str(agent_counter)
+        agent_counter += 1
         self.trim_count = 0
         self.value_count = 0
-        #This dictionary stores the cached values of pieces, with hash of piece as keys, and value of piece as value
+        ''' This dictionary stores the cached values of pieces, with hash of piece as keys, and value of piece as value '''
         self.cached_values = {}
 
     def __repr__(self):
         return self.name
 
     '''
-    Given a list of slices, the agent must be able to identify their favorite. There must be no ties
-    Also, if there is a tie between an allocated piece and an unallocated piece, choose an unallocated one
-    TODO don't reevaluate all these get_value calls
+    Given a list of slices, the agent must be able to identify their favorite. Ties are broken very intentionally
     '''
-    def choose_piece(self, pieces, count=True):
+    def choose_piece(self, pieces, above_ranking=None, count=True):
         max_value = 0
-        best_piece = None
         for p in pieces:
             max_value = max(max_value, self.get_value(p, count=count))
+        possibilities = []
         for p in pieces:
-
             if self.get_value(p) == max_value:
-                if p.allocated == None:
-                    #Immediately return an unallocated piece that we come across
-                    return p
-                elif best_piece==None:
-                    best_piece = p
+                possibilities.append(p)
 
-        assert best_piece != None
-        #We didn't find any unallocated pieces
-        return best_piece
+        ''' Sort primarily by allocated or not, and secondarily by the ranking in the subcore above this one '''
+        if above_ranking != None and self in above_ranking:
+            possibilities.sort(key=lambda p: above_ranking[self].index(p))
+        possibilities.sort(key=lambda p: p.allocated != None)
+
+        assert len(possibilities) > 0
+        return possibilities[0]
+
+    def get_ranking(self, pieces, above_ranking):
+        order = pieces[:]
+        if above_ranking:
+            order.sort(key=lambda p: above_ranking[self].index(p))
+        order.sort(key=lambda p: self.get_value(p))
+        return order
 
     '''
     Given a slice, the agent must be able to assign consistent, proportional value to the slice 

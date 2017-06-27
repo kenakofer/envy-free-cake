@@ -67,27 +67,28 @@ class Piece:
         p = self.get_after_rightmost_trim()
         return (tuple(p.intervals[:]))
 
-    def rightmost_cutter(self):
-        trim = self.get_rightmost_trim()
+    def rightmost_cutter(self, with_signature=None):
+        trim = self.get_rightmost_trim(with_signature=with_signature)
         if trim != None:
             return trim.owner
         else:
             return None
 
-        #TODO sort trims first by position, then by lexicography
-
-    def get_rightmost_trim(self):
-        trim = None
-        ''' 
-        Get the latest trim with the greatest x.
-        IMPORTANT: This "inverse lexicographic" tiebreaking is to avoid situations in which pieces are past 
-        into a subcall of subcore with trims, then trims are placed by the agents in the lower call which 
-        line up with those from the higher call.
-        '''
-        for t in self.trims:
-            if trim == None or t.x >= trim.x:
-                trim = t
-        return trim
+    ''' 
+    Get the rightmost trim on a piece. Ignore trims that have a different call signature if that option is used.
+    Break ties by the lexicography of the agents ordering, in our case, name.
+    '''
+    def get_rightmost_trim(self, with_signature=None):
+        if len(self.trims) == 0:
+            return None
+        rightmost_x = max([t.x for t in self.trims])
+        trims = list(filter(
+            lambda t: t.x == rightmost_x and (t.signature == with_signature or with_signature == None), 
+            self.trims))
+        trims.sort(key=lambda t: t.owner.name)
+        if len(trims) == 0:
+            return None
+        return trims[0]
 
     def get_after_rightmost_trim(self):
         trim = self.get_rightmost_trim()
@@ -166,6 +167,7 @@ class Trim:
         self.x = location
         assert type(self.x) == Fraction
         self.owner = owner
+        self.signature = ''
 
     def __repr__(self):
         return 'Trim('+str(self.owner)+', '+str(float(self.x))+')'

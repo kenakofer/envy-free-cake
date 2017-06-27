@@ -42,6 +42,9 @@ def subcore(pieces, agents, above_ranking=None, call_signature="top"):
         for t in p.trims:
             assert t.owner not in agents
 
+    for p in pieces:
+        assert p.allocated == None
+
     ## 4: FOR m=1 to the size of agents do:
     for m in range(1,len(agents)+1):
         debug_print("m=",m)
@@ -79,6 +82,7 @@ def subcore(pieces, agents, above_ranking=None, call_signature="top"):
                     add these new trims to the piece.
                     '''
                     possible_trim =  agent.get_trim_of_value(piece, uncontested_max_value)
+                    debug_print(agent,'trimmed',piece,'with result',possible_trim) 
                     if possible_trim != None:
                         possible_trim.signature = call_signature
                         piece.pending_trims.append(possible_trim)
@@ -101,15 +105,15 @@ def subcore(pieces, agents, above_ranking=None, call_signature="top"):
             ## If multiple agents trim the most on a given piece, the first trim placed is selected
             winners = []
             for piece in contested_pieces:
-                winner = piece.rightmost_cutter()
+                winner = piece.rightmost_cutter(with_signature=call_signature)
                 '''
                 There might be no trims on the piece, in which case it is None
                 The rightmost trim may be from a higher call of subcore
                 We only place each winner in the list once
                 '''
-                if winner != None and \
-                        winner in agents[:m] and \
-                        winner not in winners:
+                assert winner != None
+                assert winner in agents[:m]
+                if winner not in winners:
                     winners.append(winner)
 
             ## 9: While the size of W is less than m-1
@@ -142,7 +146,7 @@ def subcore(pieces, agents, above_ranking=None, call_signature="top"):
                 for t in unallocated_contested_piece.trims:
                     debug_print(t,t.signature)
                 debug_print("unallocated_contested_piece final interval:",unallocated_contested_piece.intervals[-1])
-                new_winner = unallocated_contested_piece.rightmost_cutter()
+                new_winner = unallocated_contested_piece.rightmost_cutter(with_signature=call_signature)
                 
                 debug_print("The winners are:",winners)
                 debug_print("Adding new_winner:",new_winner)

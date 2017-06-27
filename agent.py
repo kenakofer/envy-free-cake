@@ -167,7 +167,7 @@ class Agent:
 
         ''' Sort primarily by allocated or not, and secondarily by the ranking in the subcore above this one '''
         if above_ranking != None and self in above_ranking:
-            possibilities.sort(key=lambda p: above_ranking[self].index(p), reverse=True)
+            possibilities.sort(key=lambda p: above_ranking[self].index(p))
         possibilities.sort(key=lambda p: p.allocated != None)
 
         assert len(possibilities) > 0
@@ -175,8 +175,8 @@ class Agent:
 
     def get_ranking(self, pieces, above_ranking):
         order = pieces[:]
-        #if above_ranking:
-        #    order.sort(key=lambda p: above_ranking[self].index(p))
+        if above_ranking:
+            order.sort(key=lambda p: above_ranking[self].index(p))
         order.sort(key=lambda p: self.get_value(p), reverse=True)
         return order
 

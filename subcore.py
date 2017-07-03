@@ -24,7 +24,7 @@ def subcore(pieces, agents, above_ranking=None, call_signature="top"):
     '''
 
     ## 2: Order agents lexicographically
-    ''' Our agents are stored in the list in consistent order already '''
+    agents.sort(key=lambda a: a.name)
 
     ## 3: Ask each agent to rank the pieces
     current_ranking = {}

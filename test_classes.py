@@ -116,12 +116,12 @@ class AgentTests(unittest.TestCase):
         for n in [5]*10:
             a = Agent()
             piece = get_random_piece(10)
-            total_value = a.get_value(piece)
             pieces = a.cut_into_n_pieces_of_equal_value(n, piece)
             ranking_order = pieces[:]
             random.shuffle(ranking_order)
-            ranking = {a: ranking_order}
-            self.assertEqual(a.choose_piece(pieces, above_ranking=ranking), ranking[a][0])
+            random.shuffle(pieces)
+            a.ranking = ranking_order[:]
+            self.assertEqual(a.choose_piece(pieces), a.ranking[0])
 
 
 

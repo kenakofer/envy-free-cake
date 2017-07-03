@@ -18,6 +18,11 @@ def core(agent_to_cut, agents, piece):
     ## 1: Ask agent i to cut the cake R into n equally preferred pieces
     pieces = agent_to_cut.cut_into_n_pieces_of_equal_value(len(agents), piece)
 
+    ''' Initialize agent rankings '''
+    for a in agents:
+        a.ranking = pieces
+
+
     ## 2: Run SubCore Protocol on the n pieces with agents set N \ {i} with each agent having a benchmark value as zero.
     for a in agents:
         a.benchmark = 0

@@ -11,7 +11,7 @@ Comment styles:
 Triple quotes: Implementation commentary
 
 '''''''''
-def subcore(pieces, agents, above_ranking=None, call_signature="top"):
+def subcore(pieces, agents, call_signature="top"):
     set_debug_prefix(call_signature)
     debug_print()
     debug_print(call_signature)
@@ -27,10 +27,7 @@ def subcore(pieces, agents, above_ranking=None, call_signature="top"):
     ''' Our agents are stored in the list in consistent order already '''
 
     ## 3: Ask each agent to rank the pieces
-    current_ranking = {}
-    for a in agents:
-        current_ranking[a] = a.get_ranking(pieces, above_ranking)
-        debug_print(a,'has current_ranking',current_ranking[a])
+    ''' See global ranking at bottom of subcore instead '''
 
     ''' Ensure that no piece passed in was trimmed by an agent passed in '''
     for p in pieces:
@@ -44,15 +41,14 @@ def subcore(pieces, agents, above_ranking=None, call_signature="top"):
     for m in range(1,len(agents)+1):
         debug_print("m=",m)
 
-        debug_print(agents[m-1],'is choosing a piece. Their above_ranking:')
-        debug_print('',above_ranking[agents[m-1]] if above_ranking != None else 'None')
+        debug_print(agents[m-1],'is choosing a piece. Their ranking:')
+        debug_print('',agents[m-1].ranking )
         debug_print('Their options:')
         for p in pieces:
             debug_print('',p, float(agents[m-1].get_value(p, count=False)))
 
         ## 5: IF there is an unallocated piece which gives the agent the highest value among all the pieces:
-        preferred_piece = agents[m-1].choose_piece(pieces, above_ranking=above_ranking)
-        #current_ranking[agents[m-1]] = agents[m-1].get_ranking(pieces, above_ranking)
+        preferred_piece = agents[m-1].choose_piece(pieces)
 
         debug_print('They chose',preferred_piece)
 
@@ -129,7 +125,7 @@ def subcore(pieces, agents, above_ranking=None, call_signature="top"):
 
                 ## 11: Run SubCore on the contested pieces with W as the target set of agents, and the contested pieces only
                 ## considered after the loser's trims
-                subcore(contested_pieces, winners, above_ranking=current_ranking, call_signature=call_signature+' m'+str(m)+'w')
+                subcore(contested_pieces, winners, call_signature=call_signature+' m'+str(m)+'w')
                 set_debug_prefix(call_signature)
 
                 ## 12: Take any unallocated contested piece a. Now the rightmost trim on that piece is by a loser agent.
@@ -163,7 +159,7 @@ def subcore(pieces, agents, above_ranking=None, call_signature="top"):
                     debug_print(t, t.signature)
                 piece.forget_trims_by_agents(winners)
                 piece.allocated = None
-            subcore(contested_pieces, winners, above_ranking=current_ranking, call_signature=call_signature+' m'+str(m))
+            subcore(contested_pieces, winners, call_signature=call_signature+' m'+str(m))
             set_debug_prefix(call_signature)
             
             ''' There should be exactly one loser. '''
@@ -181,6 +177,14 @@ def subcore(pieces, agents, above_ranking=None, call_signature="top"):
         ## 16: END IF/ELSE
         ## 17: Update a_i and update all benchmarks for all agents i in the set m
     ## 18: END FOR
+
+    '''
+    Update each agents' allocated piece to the front of their ranking
+    '''
+    for p in pieces:
+        if p.allocated:
+            p.allocated.ranking.remove(p)
+            p.allocated.ranking.insert(0, p)
     
     '''
     These assertions cache values that would otherwise not be cached. Be sure 

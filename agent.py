@@ -145,6 +145,7 @@ class Agent:
         agent_counter += 1
         self.trim_count = 0
         self.value_count = 0
+        self.ranking = None
         ''' This dictionary stores the cached values of pieces, with hash of piece as keys, and value of piece as value '''
         self.cached_values = {}
         self.allocated_cake = piece_mod.Piece([])
@@ -156,27 +157,16 @@ class Agent:
     '''
     Given a list of slices, the agent must be able to identify their favorite. Ties are broken very intentionally
     '''
-    def choose_piece(self, pieces, above_ranking=None, count=True):
+    def choose_piece(self, pieces, count=True):
         max_value = max([self.get_value(p, count=count) for p in pieces])
         possibilities = [p for p in pieces if self.get_value(p) == max_value]
 
         ''' Sort primarily by allocated or not, and secondarily by the ranking in the subcore above this one '''
-        if above_ranking != None and self in above_ranking:
-            possibilities.sort(key=lambda p: above_ranking[self].index(p))
+        if self.ranking:
+            possibilities.sort(key=lambda p: self.ranking.index(p))
         possibilities.sort(key=lambda p: p.allocated != None)
 
         return possibilities[0]
-
-    '''
-    Generate a ranking of pieces for this agent. More valuable pieces are placed at the left of the list. 
-    The above ranking breaks ties.
-    '''
-    def get_ranking(self, pieces, above_ranking):
-        order = pieces[:]
-        if above_ranking:
-            order.sort(key=lambda p: above_ranking[self].index(p))
-        order.sort(key=lambda p: self.get_value(p), reverse=True)
-        return order
 
     '''
     Given a slice, the agent must be able to assign consistent, proportional value to the slice 

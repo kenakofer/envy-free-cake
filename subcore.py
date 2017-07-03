@@ -27,13 +27,7 @@ def subcore(pieces, agents, above_ranking=None, call_signature="top"):
     ''' Our agents are stored in the list in consistent order already '''
 
     ## 3: Ask each agent to rank the pieces
-    '''
-    We don't do this here, in order to minimize the number of queries needed later on. When such values are
-    needed for the first time, they will be computed
-    We will compute the ranking for tie breaking at (5)
-    '''
     current_ranking = {}
-    
     for a in agents:
         current_ranking[a] = a.get_ranking(pieces, above_ranking)
 

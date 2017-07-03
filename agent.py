@@ -157,22 +157,20 @@ class Agent:
     Given a list of slices, the agent must be able to identify their favorite. Ties are broken very intentionally
     '''
     def choose_piece(self, pieces, above_ranking=None, count=True):
-        max_value = 0
-        for p in pieces:
-            max_value = max(max_value, self.get_value(p, count=count))
-        possibilities = []
-        for p in pieces:
-            if self.get_value(p) == max_value:
-                possibilities.append(p)
+        max_value = max([self.get_value(p, count=count) for p in pieces])
+        possibilities = [p for p in pieces if self.get_value(p) == max_value]
 
         ''' Sort primarily by allocated or not, and secondarily by the ranking in the subcore above this one '''
         if above_ranking != None and self in above_ranking:
             possibilities.sort(key=lambda p: above_ranking[self].index(p))
         possibilities.sort(key=lambda p: p.allocated != None)
 
-        assert len(possibilities) > 0
         return possibilities[0]
 
+    '''
+    Generate a ranking of pieces for this agent. More valuable pieces are placed at the left of the list. 
+    The above ranking breaks ties.
+    '''
     def get_ranking(self, pieces, above_ranking):
         order = pieces[:]
         if above_ranking:

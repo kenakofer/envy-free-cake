@@ -30,6 +30,7 @@ def subcore(pieces, agents, above_ranking=None, call_signature="top"):
     current_ranking = {}
     for a in agents:
         current_ranking[a] = a.get_ranking(pieces, above_ranking)
+        debug_print(a,'has current_ranking',current_ranking[a])
 
     ''' Ensure that no piece passed in was trimmed by an agent passed in '''
     for p in pieces:

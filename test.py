@@ -9,18 +9,9 @@ from time import time
 
 if __name__ == '__main__':
     set_debug(True)
-    #seed = 1498158526370
-    #seed = 1498176799854
-    #seed = 1498579359179
-    
-    ## Breaks aziz and mackenzie tiebreaking 
-    #seed = 1499099201146
-
-    ## Breaks global ranking tiebreaking
-    #seed = 1499109752540
 
     ## Breaks ranking plus agent ordering
-    ## But it doesn't actually break. Why?
+    ## But it doesn't break in test.py. Why?
     seed =  1499115613878
 
     random.seed(seed)

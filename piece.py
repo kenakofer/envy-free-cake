@@ -3,9 +3,11 @@ import random
 from copy import copy
 from debug import *
 
-piece_counter=0
+
 
 class Piece:
+
+    piece_counter = 0
 
     def is_empty(piece):
         if piece == None:
@@ -41,13 +43,12 @@ class Piece:
         return Piece([Interval(Fraction(0), Fraction(1))])
 
     def __init__(self, intervals):
-        global piece_counter
         self.intervals = intervals
         self.allocated = None
         self.trims = []
         self.pending_trims = []
-        self.name = 'Piece '+str(piece_counter)
-        piece_counter += 1
+        self.name = 'Piece '+str(Piece.piece_counter)
+        Piece.piece_counter += 1
 
     def __repr__(self):
         return self.name

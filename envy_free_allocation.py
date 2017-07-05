@@ -5,6 +5,8 @@ from core import *
 from debug import *
 
 def get_envy_free_allocation(agents, piece, get_call_number=False, fractalize=True):
+    Piece.piece_counter = 0
+    Agent.agent_counter = 0
     agents = agents[:]
     allocated_cake = [a.allocated_cake for a in agents]
     residue = piece

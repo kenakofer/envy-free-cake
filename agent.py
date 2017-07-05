@@ -5,9 +5,9 @@ from copy import copy
 from itertools import combinations
 from debug import *
 
-agent_counter=0
-
 class Agent:
+
+    agent_counter = 0
 
     def get_dominations(agents, pieces, residue):
         for p in pieces:
@@ -139,10 +139,9 @@ class Agent:
     '''
 
     def __init__(self, division_count = 10, preference_function=myrandom):
-        global agent_counter
         self.set_adv_from_function(division_count, preference_function)
-        self.name = 'Agent '+str(agent_counter)
-        agent_counter += 1
+        self.name = 'Agent '+str(Agent.agent_counter)
+        Agent.agent_counter += 1
         self.trim_count = 0
         self.value_count = 0
         ''' This dictionary stores the cached values of pieces, with hash of piece as keys, and value of piece as value '''
@@ -169,12 +168,17 @@ class Agent:
 
     '''
     Generate a ranking of pieces for this agent. More valuable pieces are placed at the left of the list. 
-    The above ranking breaks ties.
+    The above ranking or lexicography breaks ties.
     '''
     def get_ranking(self, pieces, above_ranking):
         order = pieces[:]
         if above_ranking:
+            ''' Break ties by the above ranking '''
             order.sort(key=lambda p: above_ranking[self].index(p))
+        else:
+            ''' Break ties by lexcographic ordering of the pieces (leftmost point on the piece) '''
+            order.sort(key=lambda p: p.intervals[0].left)
+        ''' Sort by the current value of the piece '''
         order.sort(key=lambda p: self.get_value(p), reverse=True)
         return order
 

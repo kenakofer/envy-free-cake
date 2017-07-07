@@ -140,7 +140,8 @@ class Agent:
 
     def __init__(self, division_count = 10, preference_function=myrandom):
         self.set_adv_from_function(division_count, preference_function)
-        self.name = 'Agent '+str(Agent.agent_counter)
+        self.number = Agent.agent_counter
+        self.name = 'Agent '+str(self.number)
         Agent.agent_counter += 1
         self.trim_count = 0
         self.value_count = 0

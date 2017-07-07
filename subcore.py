@@ -24,7 +24,8 @@ def subcore(pieces, agents, above_ranking=None, call_signature="top"):
     '''
 
     ## 2: Order agents lexicographically
-    agents.sort(key=lambda a: a.name)
+    agents.sort(key=lambda a: a.number)
+    pieces.sort(key=lambda p: p.number)
 
     ## 3: Ask each agent to rank the pieces
     current_ranking = {}
@@ -193,7 +194,6 @@ def subcore(pieces, agents, above_ranking=None, call_signature="top"):
     '''
     #for a in agents:
     #    assert a.benchmark <= a.get_value(a.choose_piece(pieces, count=False), count=False)
-    
     
     debug_print("Returning from subcore with",len(pieces),"pieces and",len(agents),'agents')
     for p in pieces:

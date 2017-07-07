@@ -47,7 +47,8 @@ class Piece:
         self.allocated = None
         self.trims = []
         self.pending_trims = []
-        self.name = 'Piece '+str(Piece.piece_counter)
+        self.number = Piece.piece_counter
+        self.name = 'Piece '+str(self.number)
         Piece.piece_counter += 1
 
     def __repr__(self):

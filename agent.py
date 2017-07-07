@@ -43,8 +43,12 @@ class Agent:
 
         return None
 
-    def myrandom(x):
-        return random.random()
+    def myrandom(x, percent_zeros=None):
+        if percent_zeros != None and random.random() < percent_zeros:
+            assert percent_zeros < 1
+            return 0
+        else:
+            return random.random()
 
 
     '''
@@ -59,6 +63,8 @@ class Agent:
             x = Fraction(i,division_count)
             division_values[x] = Fraction(preference_function(x))
         s = sum([ division_values[k] for k in division_values])
+        if s == 0:
+            return self.set_adv_from_function(division_count, preference_function)
         factor = division_count / s
         #Adjusted Division Values
         self.adv = {k: division_values[k]*factor for k in division_values}

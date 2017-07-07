@@ -10,9 +10,8 @@ from time import time
 if __name__ == '__main__':
     set_debug(True)
 
-    ## Breaks ranking plus agent ordering
-    ## But it doesn't break in test.py. Why?
-    seed =  1499115613878
+    #seed =  1499115613878
+    seed = 1499456800813
 
     random.seed(seed)
     agents = [Agent(division_count=random.randint(10,20)) for i in range(12)]

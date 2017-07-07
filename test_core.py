@@ -47,7 +47,6 @@ class AgentTests(unittest.TestCase):
             for n in [5]:
                 agents = [Agent(division_count=20, preference_function=lambda x: x**Fraction(randint(0,5), randint(1,5))) for j in range(n)]
                 pieces = core(agents[0], agents, Piece.get_whole_piece())
-                self.assertTrue( True )
 
 
 
@@ -57,7 +56,14 @@ class AgentTests(unittest.TestCase):
         for n in range(2,6):
             agents = [Agent(randint(5,23)) for i in range(n)]
             pieces = core(agents[0], agents, Piece.get_whole_piece())
-            self.assertTrue( True )
+
+    def test_zero_preferences(self):
+        n = 5
+        for percent in range(0,100,10):
+            function = lambda x: Agent.myrandom(x, percent_zeros=percent/100)
+            agents = [Agent(division_count = 50, preference_function=function) for i in range(n)]
+            pieces = core(agents[0], agents, Piece.get_whole_piece())
+
 
     def test_residue_extraction(self):
         for n in range(20):

@@ -215,8 +215,9 @@ class Agent:
             return [piece]
         total_value = self.get_value(piece)
         target_value = total_value / n
-        assert type(target_value) == Fraction 
+        assert type(target_value) == Fraction
         left_piece = copy(piece)
+        start_number = left_piece.number+1
         pieces = []
         for i in range(n-1):
             t = self.get_trim_of_value(left_piece, target_value)
@@ -224,15 +225,16 @@ class Agent:
             left_piece.trims.append(t)
             assert left_piece.get_rightmost_trim() == t
             left_piece, right_piece = left_piece.split_at_rightmost_trim()
-
             pieces.append(right_piece)
-        #Pieces were added in the wrong order, so reverse!
         pieces.append(left_piece)
         #Cache the left piece's value
         self.cached_values[left_piece.hash_info()] = target_value
+        #Pieces were added in the wrong order, so reverse!
         pieces.reverse()
         #Assert that all pieces have indeed been hashed (which mostly happens inside the trim function)
-        for p in pieces:
+        for index, p in enumerate(pieces):
+            p.number = start_number + index
+            p.name = 'Piece '+str(p.number)
             assert p.hash_info() in self.cached_values
 
         return pieces

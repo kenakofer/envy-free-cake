@@ -1,0 +1,10 @@
+These are the variables that may be causing subcore to fail:
+
+ranking possibilities:
+    global ranking system
+    above ranking system
+
+trim forgetting possibilities:
+    forget winners trims
+    forget winners trims from this call to subcore
+    forget winners trims from lower calls (and this call?)

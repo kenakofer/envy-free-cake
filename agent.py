@@ -167,7 +167,7 @@ class Agent:
         max_value = max([self.get_value(p, count=count) for p in pieces])
         possibilities = [p for p in pieces if self.get_value(p) == max_value]
         ''' Sort primarily by allocated or not, and secondarily by the ranking in the subcore above this one '''
-        possibilities.sort(key=lambda p: self.ranking.index(p))
+        possibilities.sort(key=lambda p: self.ranking.index(p) if p in self.ranking else len(self.ranking))
         possibilities.sort(key=lambda p: p.allocated != None)
         return possibilities[0]
 

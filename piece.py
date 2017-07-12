@@ -66,28 +66,28 @@ class Piece:
         p = self.get_after_rightmost_trim()
         return (tuple(p.intervals[:]))
 
-    def rightmost_cutter(self, with_signature=None):
-        trim = self.get_rightmost_trim(with_signature=with_signature)
+    def rightmost_cutter(self, from_trims=None):
+        trim = self.get_rightmost_trim(from_trims=from_trims)
         if trim != None:
             return trim.owner
         else:
             return None
 
     ''' 
-    Get the rightmost trim on a piece. Ignore trims that have a different call signature if that option is used.
-    Break ties by the lexicography of the agents ordering, in our case, name.
+    Get the rightmost trim on a piece. If from_trims is given, only select from trims inside from_trims.
+    Break ties by the lexicography of the agents ordering, in our case, number.
     '''
-    def get_rightmost_trim(self, with_signature=None):
-        if len(self.trims) == 0:
+    def get_rightmost_trim(self, from_trims=None):
+        possible_trims = self.trims[:]
+        if from_trims != None:
+            possible_trims = [t for t in possible_trims if t in from_trims]
+        rightmost_x = max([t.x for t in possible_trims], default=-1)
+        possible_trims = [t for t in possible_trims if t.x == rightmost_x]
+        possible_trims.sort(key=lambda t: t.owner.name)
+
+        if len(possible_trims) == 0:
             return None
-        rightmost_x = max([t.x for t in self.trims])
-        trims = list(filter(
-            lambda t: t.x == rightmost_x and (t.signature == with_signature or with_signature == None), 
-            self.trims))
-        trims.sort(key=lambda t: t.owner.name)
-        if len(trims) == 0:
-            return None
-        return trims[0]
+        return possible_trims[0]
 
     def get_after_rightmost_trim(self):
         trim = self.get_rightmost_trim()

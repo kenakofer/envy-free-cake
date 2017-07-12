@@ -17,6 +17,9 @@ def subcore(pieces, agents, above_ranking=None, call_signature="top"):
     debug_print(call_signature)
     debug_print("Calling subcore with",len(pieces),"pieces and",len(agents),'agents')
 
+    ''' It's a bin for trims! (storing trims made in this call of subcore :) '''
+    trim_bin = [] 
+
     ## 1: Set value a_j to the value of agent j's most preferred piece
     '''
     We don't do this, in order to minimize the number of queries needed later on. When such values are
@@ -45,16 +48,14 @@ def subcore(pieces, agents, above_ranking=None, call_signature="top"):
     for m in range(1,len(agents)+1):
         debug_print("m=",m)
 
-        debug_print(agents[m-1],'is choosing a piece. Their above_ranking:')
-        debug_print('',above_ranking[agents[m-1]] if above_ranking != None else 'None')
+        debug_print(agents[m-1],'is choosing a piece. Their current_ranking:')
+        debug_print('',current_ranking[agents[m-1]])
         debug_print('Their options:')
         for p in pieces:
             debug_print('',p, float(agents[m-1].get_value(p, count=False)))
 
         ## 5: IF there is an unallocated piece which gives the agent the highest value among all the pieces:
-        preferred_piece = agents[m-1].choose_piece(pieces, above_ranking=above_ranking)
-        #current_ranking[agents[m-1]] = agents[m-1].get_ranking(pieces, above_ranking)
-
+        preferred_piece = agents[m-1].choose_piece(pieces, current_ranking=current_ranking)
         debug_print('They chose',preferred_piece)
 
         if preferred_piece.allocated == None:
@@ -77,9 +78,10 @@ def subcore(pieces, agents, above_ranking=None, call_signature="top"):
                     Because new valuations are made from the rightmost trim, don't immediately 
                     add these new trims to the piece.
                     '''
-                    possible_trim =  agent.get_trim_of_value(piece, uncontested_max_value)
+                    possible_trim = agent.get_trim_of_value(piece, uncontested_max_value)
                     debug_print(agent,'trimmed',piece,'with result',possible_trim) 
                     if possible_trim != None:
+                        trim_bin.append(possible_trim)
                         possible_trim.signature = call_signature
                         piece.pending_trims.append(possible_trim)
             ''' Now add the pending trims to the actual trims '''
@@ -101,7 +103,7 @@ def subcore(pieces, agents, above_ranking=None, call_signature="top"):
             ## If multiple agents trim the most on a given piece, the first trim placed is selected
             winners = []
             for piece in contested_pieces:
-                winner = piece.rightmost_cutter(with_signature=call_signature)
+                winner = piece.rightmost_cutter(from_trims=trim_bin)
                 '''
                 There might be no trims on the piece, in which case it is None
                 The rightmost trim may be from a higher call of subcore
@@ -142,7 +144,7 @@ def subcore(pieces, agents, above_ranking=None, call_signature="top"):
                 for t in unallocated_contested_piece.trims:
                     debug_print(t,t.signature)
                 debug_print("unallocated_contested_piece final interval:",unallocated_contested_piece.intervals[-1])
-                new_winner = unallocated_contested_piece.rightmost_cutter(with_signature=call_signature)
+                new_winner = unallocated_contested_piece.rightmost_cutter(from_trims=trim_bin)
                 
                 debug_print("The winners are:",winners)
                 debug_print("Adding new_winner:",new_winner)

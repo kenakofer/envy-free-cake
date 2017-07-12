@@ -121,7 +121,7 @@ class AgentTests(unittest.TestCase):
             ranking_order = pieces[:]
             random.shuffle(ranking_order)
             ranking = {a: ranking_order}
-            self.assertEqual(a.choose_piece(pieces, above_ranking=ranking), ranking[a][0])
+            self.assertEqual(a.choose_piece(pieces, current_ranking=ranking), ranking[a][0])
 
 
 

@@ -155,7 +155,6 @@ class Agent:
         self.cached_values = {}
         self.allocated_cake = piece_mod.Piece([])
         self.allocated_cake.allocated = self
-        self.ranking = []
 
     def __repr__(self):
         return self.name
@@ -163,13 +162,31 @@ class Agent:
     '''
     Given a list of slices, the agent must be able to identify their favorite. Ties are broken very intentionally
     '''
-    def choose_piece(self, pieces, count=True):
+    def choose_piece(self, pieces, above_ranking=None, count=True):
         max_value = max([self.get_value(p, count=count) for p in pieces])
         possibilities = [p for p in pieces if self.get_value(p) == max_value]
         ''' Sort primarily by allocated or not, and secondarily by the ranking in the subcore above this one '''
-        possibilities.sort(key=lambda p: self.ranking.index(p) if p in self.ranking else len(self.ranking))
+        if above_ranking != None and self in above_ranking:
+            possibilities.sort(key=lambda p: above_ranking[self].index(p))
         possibilities.sort(key=lambda p: p.allocated != None)
+
         return possibilities[0]
+
+    '''
+    Generate a ranking of pieces for this agent. More valuable pieces are placed at the left of the list. 
+    The above ranking or lexicography breaks ties.
+    '''
+    def get_ranking(self, pieces, above_ranking):
+        order = pieces[:]
+        if above_ranking:
+            ''' Break ties by the above ranking '''
+            order.sort(key=lambda p: above_ranking[self].index(p))
+        else:
+            ''' Break ties by lexcographic ordering of the pieces (leftmost point on the piece) '''
+            order.sort(key=lambda p: p.intervals[0].left)
+        ''' Sort by the current value of the piece '''
+        order.sort(key=lambda p: self.get_value(p), reverse=True)
+        return order
 
     '''
     Given a slice, the agent must be able to assign consistent, proportional value to the slice 

@@ -20,7 +20,6 @@ def core(agent_to_cut, agents, piece):
 
     ## 2: Run SubCore Protocol on the n pieces with agents set N \ {i} with each agent having a benchmark value as zero.
     for a in agents:
-        a.ranking = pieces[:]
         a.benchmark = 0
     subcore(pieces, [a for a in agents if a != agent_to_cut])
 

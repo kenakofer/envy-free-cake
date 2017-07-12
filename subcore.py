@@ -50,15 +50,14 @@ def subcore(pieces, agents, call_signature="top"):
 
         ## 5: IF there is an unallocated piece which gives the agent the highest value among all the pieces:
         preferred_piece = agents[m-1].choose_piece(pieces)
-        #current_ranking[agents[m-1]] = agents[m-1].get_ranking(pieces, above_ranking)
+        agents[m-1].ranking.remove(preferred_piece)
+        agents[m-1].ranking.insert(0, preferred_piece)
 
         debug_print('They chose',preferred_piece)
 
         if preferred_piece.allocated == None:
             ## 6: Tentatively give the piece to the agent, and proceed to the next iteration of the FOR loop
             preferred_piece.allocated = agents[m-1]
-            agents[m-1].ranking.remove(preferred_piece)
-            agents[m-1].ranking.insert(0, preferred_piece)
         ## ELSE
         else:
             ## 7a: The first m agents are contesting for the same m-1 pieces, called the contested pieces

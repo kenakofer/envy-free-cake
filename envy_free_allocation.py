@@ -4,11 +4,16 @@ from piece import *
 from core import *
 from debug import *
 from waste_makes_haste import *
+from time import time
 
 def get_envy_free_allocation(agents, piece, get_call_number=False, fractalize=True):
     Piece.piece_counter = 0
     Agent.agent_counter = 0
     agents = agents[:]
+    for a in agents:
+        a.value_count = 0
+        a.trim_count = 0
+        a.cached_values = {}
     #We will be updating each agent's allocated cake throughout the algorithm
     allocated_cake = [a.allocated_cake for a in agents]
     residue = piece
@@ -44,6 +49,10 @@ def get_waste_makes_haste_envy_free_allocation(agents, piece, get_call_number=Fa
     Piece.piece_counter = 0
     Agent.agent_counter = 0
     agents = agents[:]
+    for a in agents:
+        a.value_count = 0
+        a.trim_count = 0
+        a.cached_values = {}
     #We will be updating each agent's allocated cake throughout the algorithm
     allocated_cake = [a.allocated_cake for a in agents]
     residue = piece
@@ -75,10 +84,23 @@ def get_waste_makes_haste_envy_free_allocation(agents, piece, get_call_number=Fa
                 a.fractalize_preferences(residue.intervals)
 
 if __name__ == '__main__':
-    for i in range(6):
+    for n in range(3,7):
         print()
-        print(i)
-        agents = [Agent() for i in range(4)]
-        pieces = get_waste_makes_haste_envy_free_allocation(agents, Piece.get_whole_piece())
+        print('For',n,'agents:')
+        for i in range(6):
+            agents = [Agent() for j in range(n)]
 
-        assert envy_free(pieces)
+            start_time = time()
+            calls = get_waste_makes_haste_envy_free_allocation(agents, Piece.get_whole_piece(), get_call_number=True)
+            total_time = time() - start_time
+            trims = sum([a.trim_count for a in agents])
+            values = sum([a.value_count for a in agents])
+            
+            print('Waste makes haste: calls/values/trims/time:', calls, values, trims, total_time)
+            
+            start_time = time()
+            calls = get_envy_free_allocation(agents, Piece.get_whole_piece(), get_call_number=True)
+            total_time = time() - start_time
+            trims = sum([a.trim_count for a in agents])
+            values = sum([a.value_count for a in agents])
+            print('Core: calls/values/trims/time:             ', calls, values, trims, total_time)

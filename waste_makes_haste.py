@@ -46,8 +46,9 @@ def equalize(agent, pieces, k):
     # Assert that equalize accomplished its task:
     count=0
     for p in pieces:
-        assert agent.get_value(p) <= value_to_cut
-        if agent.get_value(p) == value_to_cut:
+        value = agent.get_value(p, count=False)
+        assert value <= value_to_cut
+        if value == value_to_cut:
             count += 1
     assert count >= k
     # This method modified the pieces list in place, only return the trimmed_pieces

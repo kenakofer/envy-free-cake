@@ -132,7 +132,7 @@ def subcore(pieces, agents, above_ranking=None, call_signature="top"):
 
                 ## 11: Run SubCore on the contested pieces with W as the target set of agents, and the contested pieces only
                 ## considered after the loser's trims
-                subcore(contested_pieces, winners, above_ranking=current_ranking, call_signature=call_signature+' m'+str(m)+'w')
+                subcore(contested_pieces, winners, above_ranking=current_ranking, call_signature=call_signature+' m'+str(m)+'w'+str(len(winners)))
                 set_debug_prefix(call_signature)
 
                 ## 12: Take any unallocated contested piece a. Now the rightmost trim on that piece is by a loser agent.

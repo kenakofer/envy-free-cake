@@ -89,25 +89,24 @@ class Agent:
         assert type(desired_value) == Fraction
         assert sorted(piece.intervals) == piece.intervals
         assert desired_value >= 0
+        assert len(piece.intervals) > 0
 
         keys = list(self.adv.keys())
         keys.sort()
 
-        # TODO should we always increment trim_count?
-        if count: self.trim_count += 1
+        if count:
+            self.trim_count += 1
 
         if len(piece.trims) > 0:
             return self.get_trim_of_value(piece.get_after_rightmost_trim(), desired_value, count=False)
 
         acc_value = Fraction(0)
         trim_at = Fraction(0)
-        #target_value is the amount to trim OFF of the piece after the rightmost trim
+        # target_value is the amount to trim OFF of the piece after the rightmost trim
         # We agreed that if we incremented trim_count, the get_value should not count
         target_value = self.get_value(piece, count=False) - desired_value
         if target_value < 0:
             return None
-        if len(piece.intervals) == 0:
-            raise Exception("We've got some problems here...")
         for interval in piece.intervals:
             value_of_interval = self.value_up_to(interval.right) - self.value_up_to(interval.left)
 
@@ -120,7 +119,7 @@ class Agent:
                 trim_at = interval.left
 
                 for k in filter( lambda k: interval.left < k, keys ):
-                    #assert interval.left <= k <= interval.right
+                    #TODO don't use value_up_to, use the adv values
                     if self.value_up_to(k) - self.value_up_to(trim_at) + acc_value <= target_value:
                         acc_value += self.value_up_to(k) - self.value_up_to(trim_at)
                         trim_at = k
@@ -132,7 +131,9 @@ class Agent:
                 break
 
         assert any( [i.left <= trim_at <= i.right for i in piece.intervals] )
+
         ''' Because this trim may not be added to the piece, hash the value of a copied piece '''
+        #TODO don't need a new piece?
         new_piece = copy(piece)
         new_piece.trims = [piece_mod.Trim(self, trim_at)]
         #assert self.get_value(new_piece, count=False) == desired_value
@@ -155,7 +156,6 @@ class Agent:
         self.cached_values = {}
         self.allocated_cake = piece_mod.Piece([])
         self.allocated_cake.allocated = self
-        self.ranking = []
 
     def __repr__(self):
         return self.name
@@ -163,13 +163,31 @@ class Agent:
     '''
     Given a list of slices, the agent must be able to identify their favorite. Ties are broken very intentionally
     '''
-    def choose_piece(self, pieces, count=True):
+    def choose_piece(self, pieces, current_ranking=None, count=True):
         max_value = max([self.get_value(p, count=count) for p in pieces])
         possibilities = [p for p in pieces if self.get_value(p) == max_value]
         ''' Sort primarily by allocated or not, and secondarily by the ranking in the subcore above this one '''
-        possibilities.sort(key=lambda p: self.ranking.index(p) if p in self.ranking else len(self.ranking))
+        if current_ranking != None and self in current_ranking:
+            possibilities.sort(key=lambda p: current_ranking[self].index(p))
         possibilities.sort(key=lambda p: p.allocated != None)
+
         return possibilities[0]
+
+    '''
+    Generate a ranking of pieces for this agent. More valuable pieces are placed at the left of the list. 
+    The above ranking or lexicography breaks ties.
+    '''
+    def get_ranking(self, pieces, above_ranking):
+        order = pieces[:]
+        if above_ranking:
+            ''' Break ties by the above ranking '''
+            order.sort(key=lambda p: above_ranking[self].index(p))
+        else:
+            ''' Break ties by lexcographic ordering of the pieces (leftmost point on the piece) '''
+            order.sort(key=lambda p: p.intervals[0].left)
+        ''' Sort by the current value of the piece '''
+        order.sort(key=lambda p: self.get_value(p), reverse=True)
+        return order
 
     '''
     Given a slice, the agent must be able to assign consistent, proportional value to the slice 

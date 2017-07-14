@@ -11,7 +11,8 @@ if __name__ == '__main__':
     set_debug(True)
 
     #seed =  1499115613878
-    seed = 1499456800813
+    #seed = 1499456800813
+    seed = 1499898496367
 
     random.seed(seed)
     agents = [Agent(division_count=random.randint(10,20)) for i in range(12)]

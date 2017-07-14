@@ -6,10 +6,10 @@ from debug import *
 from waste_makes_haste import *
 from time import time
 
-def get_envy_free_allocation(agents, piece, get_call_number=False, fractalize=True):
+def get_envy_free_allocation(agent_list, piece, get_counts=False, fractalize=True):
     Piece.piece_counter = 0
     Agent.agent_counter = 0
-    agents = agents[:]
+    agents = agent_list[:]
     for a in agents:
         a.value_count = 0
         a.trim_count = 0
@@ -32,7 +32,11 @@ def get_envy_free_allocation(agents, piece, get_call_number=False, fractalize=Tr
 
         # Check if residue is None. If so, return envy free allocation! Also return if the residue is full of empty intervals
         if Piece.is_empty(residue):
-            return i+1 if get_call_number else allocated_cake
+            if get_counts:
+                trims = sum([a.trim_count for a in agent_list])
+                values = sum([a.value_count for a in agent_list])
+                return i+1, trims, values  
+            return allocated_cake
 
         # See if we can reduce the number of players using a dominating set
         dominating_set = Agent.get_dominating_set(agents, allocated_cake, residue)
@@ -45,10 +49,10 @@ def get_envy_free_allocation(agents, piece, get_call_number=False, fractalize=Tr
             for a in agents:
                 a.fractalize_preferences(residue.intervals)
 
-def get_waste_makes_haste_envy_free_allocation(agents, piece, get_call_number=False, fractalize=True):
+def get_waste_makes_haste_envy_free_allocation(agent_list, piece, get_counts=False, fractalize=True):
     Piece.piece_counter = 0
     Agent.agent_counter = 0
-    agents = agents[:]
+    agents = agent_list[:]
     for a in agents:
         a.value_count = 0
         a.trim_count = 0
@@ -70,7 +74,11 @@ def get_waste_makes_haste_envy_free_allocation(agents, piece, get_call_number=Fa
 
         # Check if residue is None. If so, return envy free allocation! Also return if the residue is full of empty intervals
         if Piece.is_empty(residue):
-            return i+1 if get_call_number else allocated_cake
+            if get_counts:
+                trims = sum([a.trim_count for a in agent_list])
+                values = sum([a.value_count for a in agent_list])
+                return i+1, trims, values  
+            return allocated_cake
 
         # See if we can reduce the number of players using a dominating set
         dominating_set = Agent.get_dominating_set(agents, allocated_cake, residue)

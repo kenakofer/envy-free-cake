@@ -132,9 +132,14 @@ class Piece:
                     #It IS possible to trim a piece to 0 width
                     return Piece(self.intervals[:]), Piece([Interval(trim.x, trim.x)])
 
-    def forget_trims_by_agents(self, agents):
-        keep_trims = list(filter(lambda t: t.owner not in agents, self.trims))
-        self.trims = keep_trims
+    '''
+    If prefix_signature is given, will only forget trims whose signatures that begin with the prefix_signature
+    '''
+    def forget_trims_by_agents(self, agents, prefix_signature=None):
+        if prefix_signature == None:
+            self.trims = list(filter(lambda t: t.owner not in agents, self.trims))
+        else:
+            self.trims = [t for t in self.trims if t.owner not in agents or (not prefix_signature in t.signature)]
 
 class Interval:
 

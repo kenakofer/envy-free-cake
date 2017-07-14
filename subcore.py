@@ -125,7 +125,7 @@ def subcore(pieces, agents, above_ranking=None, call_signature="top"):
                     debug_print("before forgetting in the while loop, these are the trims on",piece)
                     for t in piece.trims:
                         debug_print(t, t.signature)
-                    piece.forget_trims_by_agents(winners)
+                    piece.forget_trims_by_agents(winners, prefix_signature=call_signature)
                 ''' Forget allocations (pieces may have been allocated in lower calls of subcore) '''
                 for piece in pieces:
                     piece.allocated = None
@@ -164,7 +164,7 @@ def subcore(pieces, agents, above_ranking=None, call_signature="top"):
                 debug_print("before forgetting after the while loop, these are the trims on",piece)
                 for t in piece.trims:
                     debug_print(t, t.signature)
-                piece.forget_trims_by_agents(winners)
+                piece.forget_trims_by_agents(winners, prefix_signature=call_signature)
                 piece.allocated = None
             subcore(contested_pieces, winners, above_ranking=current_ranking, call_signature=call_signature+' m'+str(m))
             set_debug_prefix(call_signature)

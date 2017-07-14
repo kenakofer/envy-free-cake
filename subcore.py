@@ -75,7 +75,7 @@ def subcore(pieces, agents, above_ranking=None, call_signature="top"):
                 debug_print(agent, "uncontested max value is",float(uncontested_max_value))
                 for piece in contested_pieces:
                     '''
-                    Because new valuations are made from the rightmost trim, don't immediately 
+                    Because new valuations are made from the rightmost trim, don't immediately
                     add these new trims to the piece.
                     '''
                     possible_trim = agent.get_trim_of_value(piece, uncontested_max_value)
@@ -88,7 +88,7 @@ def subcore(pieces, agents, above_ranking=None, call_signature="top"):
             for piece in contested_pieces:
                 piece.trims.extend(piece.pending_trims)
                 ''' Make sure the trims are sorted by their x position '''
-                piece.trims = sorted(piece.trims, key = lambda t: t.x)
+                piece.trims.sort( key = lambda t: t.x )
                 piece.pending_trims = []
 
             ## 7c: Update agent benchmarks
@@ -118,10 +118,7 @@ def subcore(pieces, agents, above_ranking=None, call_signature="top"):
             while len(winners) < m-1:
                 debug_print("BEGINNING WHILE LOOP")
 
-                ## 10: Ignore the previous trims of agents in W
-                ''' Forget allocations '''
-                for piece in pieces:
-                    piece.allocated = None
+                ## 10: Ignore the previous trims of agents in W, and forget previous allocations
                 ''' Forget previous trims '''
                 debug_print("Before forgetting in the while loop, the winners are:",winners)
                 for piece in contested_pieces:
@@ -129,9 +126,12 @@ def subcore(pieces, agents, above_ranking=None, call_signature="top"):
                     for t in piece.trims:
                         debug_print(t, t.signature)
                     piece.forget_trims_by_agents(winners)
+                ''' Forget allocations (pieces may have been allocated in lower calls of subcore) '''
+                for piece in pieces:
+                    piece.allocated = None
 
-                ## 11: Run SubCore on the contested pieces with W as the target set of agents, and the contested pieces only
-                ## considered after the loser's trims
+                ## 11: Run SubCore on the contested pieces with W as the target set of agents, 
+                ## and the contested pieces only considered after the loser's trims
                 subcore(contested_pieces, winners, above_ranking=current_ranking, call_signature=call_signature+' m'+str(m)+'w'+str(len(winners)))
                 set_debug_prefix(call_signature)
 

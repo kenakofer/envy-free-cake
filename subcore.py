@@ -179,7 +179,7 @@ def subcore(pieces, agents, above_ranking=None, call_signature="top"):
 
             ## 15: The only loser remaining is allocated their most preferred uncontested piece
             loser = losers[0]
-            preferred_uncontested_piece = loser.choose_piece(uncontested_pieces)
+            preferred_uncontested_piece = loser.choose_piece(uncontested_pieces, current_ranking=current_ranking)
             preferred_uncontested_piece.allocated = loser
         ## 16: END IF/ELSE
         ## 17: Update a_i and update all benchmarks for all agents i in the set m

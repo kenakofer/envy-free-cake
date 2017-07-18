@@ -52,7 +52,7 @@ def subcore(pieces, agents, above_ranking=None, call_signature="top"):
         debug_print('',current_ranking[agents[m-1]])
         debug_print('Their options:')
         for p in pieces:
-            debug_print('',p, float(agents[m-1].get_value(p, count=False)))
+            debug_print('',p, float(agents[m-1].get_value(p, count=False)), p.allocated)
 
         ## 5: IF there is an unallocated piece which gives the agent the highest value among all the pieces:
         preferred_piece = agents[m-1].choose_piece(pieces, current_ranking=current_ranking)

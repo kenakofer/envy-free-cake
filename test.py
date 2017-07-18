@@ -12,7 +12,10 @@ if __name__ == '__main__':
 
     #seed =  1499115613878
     #seed = 1499456800813
-    seed = 1499898496367
+    #seed = 1499898496367
+
+    #This seed produces the "golden output"
+    seed = 1500335285296
 
     random.seed(seed)
     agents = [Agent(division_count=random.randint(10,20)) for i in range(12)]

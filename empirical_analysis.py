@@ -7,7 +7,6 @@ from envy_free_allocation import *
 from copy import copy
 from time import time
 
-OUTFILE = './data_envy_free.out'
 seed = 0
 
 def write_output(string):
@@ -32,10 +31,10 @@ def write_core_scenario_to_file(agents):
     info_line += str(value_count)
     write_output(info_line)
 
-def write_envy_free_scenario_to_file(agents):
+def write_envy_free_scenario_to_file(agents, division_function=get_envy_free_allocation):
     info_line = ""
     try:
-        core_number = get_envy_free_allocation(agents, Piece.get_whole_piece(), get_call_number=True)
+        core_number, trim_count, value_count = division_function(agents, Piece.get_whole_piece(), get_counts=True)
     except AssertionError:
         print("We hit a False Assertion! Here is the seed to reproduce:", seed)
         print(info_line)
@@ -44,11 +43,15 @@ def write_envy_free_scenario_to_file(agents):
     for a in agents:
         info_line += a.get_preference_string() + '; '
     
-    info_line += '| '
+    info_line += ' | '
     info_line += str(core_number)
+    info_line += ' | '
+    info_line += str(trim_count)
+    info_line += ' | '
+    info_line += str(value_count)
     write_output(info_line)
 
-def envy_free_random(player_number_list, count):
+def envy_free_random(player_number_list, count, division_function=get_envy_free_allocation):
     global seed
     for n in player_number_list:
         print(n,'Players')
@@ -57,8 +60,8 @@ def envy_free_random(player_number_list, count):
             seed = int(time()*1000)
             random.seed(seed)
             print(str(i)+'th trial for '+str(n)+' players')
-            agents = [Agent(division_count=random.randint(10,20)) for i in range(n)]
-            write_envy_free_scenario_to_file(agents)
+            agents = [Agent(division_count=20) for i in range(n)]
+            write_envy_free_scenario_to_file(agents, division_function=division_function)
 
 def core_random(player_number_list, count):
     for n in player_number_list:
@@ -151,14 +154,18 @@ def get_agents_partitioned_preferences(number, division_count=48):
             a.adv[i] = Fraction(random.random()) if i in indices else 0
     return agents
 
-
 if __name__ == '__main__':
     #population = [get_agents_partitioned_preferences(4, division_count=400) for i in range(9)]
     #population = [[Agent(division_count=50, preference_function=lambda x: x) for i in range(4)] for n in range(9)]
     #genetic_find_worst_envy_free_case(population, epsilon_change=Fraction(1, 2**16))
     #population = [[Agent(division_count=50) for i in range(4)] for n in range(9)]
     #genetic_find_worst_envy_free_case(population)
-    envy_free_random(range(13,14),100)
-    #core_best_case(range(4,12))
-    #core_worst_case(range(4,12))
-    #core_random(range(4,12),1000)
+    #envy_free_random(range(13,14),100)
+    #envy_free_random(range(3,8), 100, division_function=get_waste_makes_haste_envy_free_allocation)
+    for n in range(7,11):
+        for i in range(20):
+            OUTFILE = './data_envy_free_core.out'
+            envy_free_random(range(n,n+1), 1, division_function=get_envy_free_allocation)
+            OUTFILE = './data_envy_free_waste_makes_haste.out'
+            envy_free_random(range(n,n+1), 1, division_function=get_envy_free_allocation)
+

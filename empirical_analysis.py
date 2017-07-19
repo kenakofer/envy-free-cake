@@ -164,6 +164,7 @@ if __name__ == '__main__':
     #envy_free_random(range(3,8), 100, division_function=get_waste_makes_haste_envy_free_allocation)
     for n in range(7,11):
         for i in range(20):
+            print(i)
             OUTFILE = './data_envy_free_core.out'
             envy_free_random(range(n,n+1), 1, division_function=get_envy_free_allocation)
             OUTFILE = './data_envy_free_waste_makes_haste.out'

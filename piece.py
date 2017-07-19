@@ -135,11 +135,11 @@ class Piece:
     '''
     If prefix_signature is given, will only forget trims whose signatures that begin with the prefix_signature
     '''
-    def forget_trims_by_agents(self, agents, prefix_signature=None):
+    def forget_trims_by_agents(self, agents, prefix_signature=None, with_m=None):
         if prefix_signature == None:
             self.trims = list(filter(lambda t: t.owner not in agents, self.trims))
         else:
-            self.trims = [t for t in self.trims if t.owner not in agents or (not prefix_signature in t.signature)]
+            self.trims = [t for t in self.trims if t.owner not in agents or (not prefix_signature in t.signature) or (prefix_signature == t.signature and with_m != t.m)]
 
 class Interval:
 

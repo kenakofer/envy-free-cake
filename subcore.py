@@ -37,9 +37,11 @@ def subcore(pieces, agents, above_ranking=None, call_signature="top"):
         debug_print(a,'has current_ranking',current_ranking[a])
 
     ''' Ensure that no piece passed in was trimmed by an agent passed in '''
+    '''
     for p in pieces:
         for t in p.trims:
             assert t.owner not in agents
+    '''
 
     for p in pieces:
         assert p.allocated == None
@@ -83,6 +85,7 @@ def subcore(pieces, agents, above_ranking=None, call_signature="top"):
                     if possible_trim != None:
                         trim_bin.append(possible_trim)
                         possible_trim.signature = call_signature
+                        possible_trim.m = m
                         piece.pending_trims.append(possible_trim)
             ''' Now add the pending trims to the actual trims '''
             for piece in contested_pieces:
@@ -125,7 +128,7 @@ def subcore(pieces, agents, above_ranking=None, call_signature="top"):
                     debug_print("before forgetting in the while loop, these are the trims on",piece)
                     for t in piece.trims:
                         debug_print(t, t.signature)
-                    piece.forget_trims_by_agents(winners, prefix_signature=call_signature)
+                    piece.forget_trims_by_agents(winners, prefix_signature=call_signature, with_m=m)
                 ''' Forget allocations (pieces may have been allocated in lower calls of subcore) '''
                 for piece in pieces:
                     piece.allocated = None
@@ -164,7 +167,7 @@ def subcore(pieces, agents, above_ranking=None, call_signature="top"):
                 debug_print("before forgetting after the while loop, these are the trims on",piece)
                 for t in piece.trims:
                     debug_print(t, t.signature)
-                piece.forget_trims_by_agents(winners, prefix_signature=call_signature)
+                piece.forget_trims_by_agents(winners, prefix_signature=call_signature, with_m=m)
                 piece.allocated = None
             subcore(contested_pieces, winners, above_ranking=current_ranking, call_signature=call_signature+' m'+str(m))
             set_debug_prefix(call_signature)

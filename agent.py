@@ -338,8 +338,16 @@ class Agent:
                 k_num, k_den = map(int, k.split())
                 v_num, v_den = map(int, v.split())
                 self.adv[Fraction(k_num, k_den)] = Fraction(v_num, v_den)
+            # Adjust the values to sum to 1
             acc_value = Fraction(0)
             keys = sorted(list(self.adv.keys()))
+            for i in range(len(keys)):
+                width = keys[i] if i == 0 else keys[i] - keys[i-1]
+                acc_value += width * self.adv[keys[i]]
+            for k in keys:
+                self.adv[k] /= acc_value
+            # Check that the values sum to 1
+            acc_value = Fraction(0)
             for i in range(len(keys)):
                 width = keys[i] if i == 0 else keys[i] - keys[i-1]
                 acc_value += width * self.adv[keys[i]]

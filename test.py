@@ -15,8 +15,12 @@ if __name__ == '__main__':
     #seed = 1499898496367
 
     #This seed produces the "golden output"
-    seed = 1500335285296
+    #seed = 1500335285296
+
+    #These seeds break strategy choose_by_above_trims for 12 players
+    #seed = 1500531379583
+    seed = 1500534838022
 
     random.seed(seed)
     agents = [Agent(division_count=random.randint(10,20)) for i in range(12)]
-    core_number = get_envy_free_allocation(agents, Piece.get_whole_piece(), get_call_number=True)
+    core_number = get_envy_free_allocation(agents, Piece.get_whole_piece())

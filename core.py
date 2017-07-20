@@ -30,7 +30,7 @@ def core(agent_to_cut, agents, piece):
     
     ## 4: Return an envy-free partial allocation as well as the unallocated cake
     ''' Leave commented to avoid caching values that will mess up value_counts '''
-    #assert envy_free(pieces)
+    assert envy_free(pieces)
     ''' 
     Note that our implementation returns pieces with trims placed on them 
     to indicate where the residue should be cut off

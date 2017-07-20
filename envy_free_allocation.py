@@ -70,6 +70,7 @@ def get_waste_makes_haste_envy_free_allocation(agents, piece, get_call_number=Fa
 
         # Check if residue is None. If so, return envy free allocation! Also return if the residue is full of empty intervals
         if Piece.is_empty(residue):
+            assert envy_free(allocated_cake)
             return i+1 if get_call_number else allocated_cake
 
         # See if we can reduce the number of players using a dominating set

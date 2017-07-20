@@ -160,15 +160,7 @@ if __name__ == '__main__':
     #genetic_find_worst_envy_free_case(population, epsilon_change=Fraction(1, 2**16))
     #population = [[Agent(division_count=50) for i in range(4)] for n in range(9)]
     #genetic_find_worst_envy_free_case(population)
-    #envy_free_random(range(13,14),100)
-    OUTFILE = './data_envy_free_waste_makes_haste.out'
-    envy_free_random(range(7,11), 20, division_function=get_waste_makes_haste_envy_free_allocation)
-    '''
-    for n in range(7,11):
-        for i in range(20):
-            print(i)
-            OUTFILE = './data_envy_free_core.out'
-            envy_free_random(range(n,n+1), 1, division_function=get_envy_free_allocation)
-            OUTFILE = './data_envy_free_waste_makes_haste.out'
-            envy_free_random(range(n,n+1), 1, division_function=get_waste_makes_haste_envy_free_allocation)
-    '''
+    envy_free_random(range(12,15),100)
+    #core_best_case(range(4,12))
+    #core_worst_case(range(4,12))
+    #core_random(range(4,12),1000)

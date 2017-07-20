@@ -32,6 +32,7 @@ def get_envy_free_allocation(agent_list, piece, get_counts=False, fractalize=Tru
 
         # Check if residue is None. If so, return envy free allocation! Also return if the residue is full of empty intervals
         if Piece.is_empty(residue):
+            assert envy_free(allocated_cake)
             if get_counts:
                 trims = sum([a.trim_count for a in agent_list])
                 values = sum([a.value_count for a in agent_list])
@@ -74,6 +75,7 @@ def get_waste_makes_haste_envy_free_allocation(agent_list, piece, get_counts=Fal
 
         # Check if residue is None. If so, return envy free allocation! Also return if the residue is full of empty intervals
         if Piece.is_empty(residue):
+            assert envy_free(allocated_cake)
             if get_counts:
                 trims = sum([a.trim_count for a in agent_list])
                 values = sum([a.value_count for a in agent_list])

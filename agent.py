@@ -163,12 +163,18 @@ class Agent:
     '''
     Given a list of slices, the agent must be able to identify their favorite. Ties are broken very intentionally
     '''
-    def choose_piece(self, pieces, current_ranking=None, count=True):
+    def choose_piece(self, pieces, current_ranking=None, count=True, call_signature=None):
         max_value = max([self.get_value(p, count=count) for p in pieces])
         possibilities = [p for p in pieces if self.get_value(p) == max_value]
+
         ''' Sort primarily by allocated or not, and secondarily by the ranking in the subcore above this one '''
         if current_ranking != None and self in current_ranking:
             possibilities.sort(key=lambda p: current_ranking[self].index(p))
+        if call_signature != None and len(call_signature.split()) > 1 and 'w=' in call_signature.split()[-2]:
+            sig_to_count = call_signature[0:call_signature.rfind('w=')]
+            debug_print('signature to check:',sig_to_count)
+            possibilities.sort(key=lambda p: len([t for t in p.trims if t.signature == sig_to_count]) != 0)
+
         possibilities.sort(key=lambda p: p.allocated != None)
 
         return possibilities[0]
@@ -338,8 +344,16 @@ class Agent:
                 k_num, k_den = map(int, k.split())
                 v_num, v_den = map(int, v.split())
                 self.adv[Fraction(k_num, k_den)] = Fraction(v_num, v_den)
+            # Adjust the values to sum to 1
             acc_value = Fraction(0)
             keys = sorted(list(self.adv.keys()))
+            for i in range(len(keys)):
+                width = keys[i] if i == 0 else keys[i] - keys[i-1]
+                acc_value += width * self.adv[keys[i]]
+            for k in keys:
+                self.adv[k] /= acc_value
+            # Check that the values sum to 1
+            acc_value = Fraction(0)
             for i in range(len(keys)):
                 width = keys[i] if i == 0 else keys[i] - keys[i-1]
                 acc_value += width * self.adv[keys[i]]

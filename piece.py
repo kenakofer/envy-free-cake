@@ -2,6 +2,7 @@ from fractions import Fraction
 import random
 from copy import copy
 from debug import *
+from itertools import zip_longest
 
 
 
@@ -186,3 +187,42 @@ def envy_free(pieces):
             if agent.get_value(agent.choose_piece(pieces)) > agent.get_value(p):
                 return False
     return True
+
+class ImaginaryValue:
+    
+    def __init__(self, agents):
+        #self.epsilon_indices = {a:[] for a in agents}
+        self.epsilon_indices = {}
+
+    def __eq__(self, other):
+        return self.epsilon_indices == other.epsilon_indices
+
+    def __lt__(self, other):
+        if self == other:
+            return False
+        agents1 = sorted(self.epsilon_indices.keys())
+        agents2 = sorted(other.epsilon_indices.keys())
+        for a1, a2 in zip_longest(agents1, agents2):
+            if a1 == None:
+                return True
+            elif a2 == None:
+                return False
+            elif a1 != a2:
+                # The earlier agent has larger epsilons
+                return a2 < a1
+            else:
+                # a1 is a2
+                # Check the epsilon indices for the matching agent. If there is
+                #
+                indices1 = self.epsilon_indices[a1]
+                indices2 = other.epsilon_indices[a2]
+                if indices1 == indices2:
+                    continue
+                else:
+                    # Note the the indices lists are integers in ascending form
+                    # Later indices in the list have more weight, so we reverse and then
+                    # do a lexicographic comparison
+                    return list(reversed(indices1)) < list(reversed(indices2))
+
+        #This would imply equality, which we checked for at the top
+        assert False

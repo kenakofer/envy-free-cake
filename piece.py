@@ -194,6 +194,18 @@ class ImaginaryValue:
         #self.epsilon_indices = {a:[] for a in agents}
         self.epsilon_indices = {}
 
+    def add_epsilon(self, agent, index):
+        # Make a copy of self
+        new = ImaginaryValue()
+        new.epsilon_indices = {k:v[:] for k,v in self.epsilon_indices.items()}
+
+        new.epsilon_indices.setdefault(agent, [])
+        #The epsilon_indices must stay in order
+        assert len(new.epsilon_indices[agent]) == 0 or index > new.epsilon_indices[agent][-1]
+        new.epsilon_indices[agent].append(index)
+        assert new > self
+        return new
+
     def __eq__(self, other):
         return self.epsilon_indices == other.epsilon_indices
 
